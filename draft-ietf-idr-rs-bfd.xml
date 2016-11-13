@@ -11,9 +11,7 @@
 <!ENTITY RFC5880 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5880.xml">
 <!ENTITY RFC5881 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5881.xml">
 <!ENTITY RFC7947 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7947.xml">
-<!ENTITY NH-COST SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-idr-bgp-nh-cost.xml">
-<!--ENTITY NH-COST SYSTEM
-"http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.draft-kato-bgp-ipv6-link-local.xml"-->
+<!--ENTITY NH-COST SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-idr-bgp-nh-cost.xml"-->
 ]>
 <?rfc comments="yes"?>
 <?rfc compact="yes"?>
@@ -399,7 +397,7 @@
 						IPv6 NLRI that are directly connected to advertise both an IPv6 global
 						address and an IPv6 link-local address.  However, in the case where IPv6
 						link-local peering is being used for route server purposes 
-						(TBD - insert draft-kato-bgp-ipv6-link-local ref here),
+						<xref target="ID.draft-kato-bgp-ipv6-link-local"/>,
 						a link-local address may be used in this field.
 					</t>
 					<t>
@@ -433,7 +431,7 @@
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
    |   IPv6 Nexthop (or counter)   |C R R R|     Generation ID     |
    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-						]]></artwork></figure>
+                                                ]]></artwork></figure>
 					</t>
 				</section>
 			</section>
@@ -564,11 +562,17 @@
 				</section>
 				<section title="Specific Procedures for Route Server Clients">
 				<t>
-					A route server client SHALL always create an entry in its Adj-NHIB-Out for its
-					clients, even if a next hop has not been received for this client.  This
-					self-originated  entry permits BFD sessions at the clients to be provisioned
+					A route server SHALL always create an entry in its Adj-NHIB-Out for its
+					clients that are peering with each other through the route server, even if a next hop has not been received for this client.  This
+					self-originated entry permits BFD sessions at the clients to be provisioned
 					even if the route exchange via the route server is asymmetric and one router
 					sends routes to the second router in the route server view but not vice versa.
+				</t>
+				<t>
+					Route server clients are considered to be peering with
+					each other if the configuration of the route server
+					permits routes from a given pair of peers to be mutually
+					exchanged through the route server.
 				</t>
 				</section>
 			</section>
@@ -800,11 +804,11 @@
 			</t>
 		</section>
 
-		<section anchor="ack" title="Acknowledgments">
+		<!-- section anchor="ack" title="Acknowledgments">
 			<t>
 				The authors would like to thank the authors of <xref target="I-D.ietf-idr-bgp-nh-cost" /> for their work as it was a basis for this proposal.
 			</t>
-		</section>
+		</section -->
 
 	</middle>
 
@@ -823,7 +827,18 @@
 		&RFC7947;
 		</references>
 		<references title="Informative References">
-		&NH-COST;
+		    <reference anchor="ID.draft-kato-bgp-ipv6-link-local" target="https://tools.ietf.org/html/draft-kato-bgp-ipv6-link-local-00">
+		      <front>
+			<title>BGP4+ Peering Using IPv6 Link-local Address</title>
+			<author initials="A" surname="Kato" fullname="Akira Kato">
+			    <organization>USC/ISI &amp; WIDE Project</organization>
+			</author>
+			<author initials="B" surname="Manning" fullname="Bill Manning">
+			    <organization>USC/ISI</organization>
+			</author>
+			<date month="September" year="2001"/>
+		      </front>
+		    </reference>
 		&RFC1982;
 		</references>
 
@@ -834,31 +849,45 @@
 			</t>
                         <t>
                                 <figure><artwork><![CDATA[
-   +-----------------------------------+----------------------------+
-   | Client Role                       | (Route-Server |            |
-   |                                   |  Route-Server-Client       |
-   +-----------------------------------+----------------------------+
-   | Table-State                       | (Valid | Invalid)          |
-   +-----------------------------------+----------------------------+
-   | Adj-NHIB-In-Pending-Generation-Id | <16-bit unsigned integer>  |
-   +-----------------------------------+----------------------------+
-   | Adj-NHIB-In-Pending-Count         | <16-bit unsigned integer>  |
-   +-----------------------------------+----------------------------+
-                Fig. 1  Per-peer Adj-NHIB-In Table State
+ +-----------------------------------+----------------------------+
+ | Client Role                       | (Route-Server |            |
+ |                                   |  Route-Server-Client       |
+ +-----------------------------------+----------------------------+
+ | Table-State                       | (Valid | Invalid)          |
+ +-----------------------------------+----------------------------+
+ | Adj-NHIB-In-Pending-Generation-Id | <16-bit unsigned integer>  |
+ +-----------------------------------+----------------------------+
+ | Adj-NHIB-In-Pending-Count         | <16-bit unsigned integer>  |
+ +-----------------------------------+----------------------------+
+             Fig. 1  Per-peer Adj-NHIB-In Table State
 
 
-   +---------------------------+--------------------------------------+
-   | NextHop                   | <IPv4 Address | IPv6 Address         |
-   +---------------------------+--------------------------------------+
-   | Generation-ID             | <16-bit unsigned integer>            |
-   +---------------------------+--------------------------------------+
-   | Reachable                 | (Unknown | Up | Down | AdminDown)    |
-   +---------------------------+--------------------------------------+
++---------------------------+--------------------------------------+
+| NextHop                   | <IPv4 Address | IPv6 Address         |
++---------------------------+--------------------------------------+
+| Generation-ID             | <16-bit unsigned integer>            |
++---------------------------+--------------------------------------+
+| Reachable                 | (Unknown | Up | Down | AdminDown)    |
++---------------------------+--------------------------------------+
               Fig. 2  Per-peer, per-nexthop  Adj-NHIB-In State
 
                                 ]]></artwork></figure>
                         </t>
 
+		</section>
+
+		<section title="Summary of Document Changes">
+		    <t>
+		    <list style="hanging" hangIndent="2">
+			<t hangText="idr-01 to idr-02:">Move from BGP-LS to RS-Reachable extended
+			   community.  Lots of editorial changes.</t>
+			<t hangText="idr-00 to idr-01:">Add BGP Capability.  Move from NH-Cost to BGP-LS.</t>
+			<t hangText="ymbk-01 to idr-00:">No technical changes; adopted by IDR.</t>
+			<t hangText="ymbk-00 to ymbk-01:">Clarifications to BFD procedures. Use BFD state
+			   as an input to BGP route selection.</t>
+
+		    </list>
+		    </t>
 		</section>
 	</back>
 

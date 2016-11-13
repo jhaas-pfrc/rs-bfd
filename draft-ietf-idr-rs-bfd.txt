@@ -100,11 +100,11 @@ Table of Contents
    8.  Bootstrapping . . . . . . . . . . . . . . . . . . . . . . . .  14
    9.  Capability Detection  . . . . . . . . . . . . . . . . . . . .  14
    10. Other Considerations  . . . . . . . . . . . . . . . . . . . .  14
-   11. Acknowledgments . . . . . . . . . . . . . . . . . . . . . . .  14
-   12. References  . . . . . . . . . . . . . . . . . . . . . . . . .  14
-     12.1.  Normative References . . . . . . . . . . . . . . . . . .  14
-     12.2.  Informative References . . . . . . . . . . . . . . . . .  15
+   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  14
+     11.1.  Normative References . . . . . . . . . . . . . . . . . .  14
+     11.2.  Informative References . . . . . . . . . . . . . . . . .  15
    Appendix A.  Summary of Adj-NHIB-In state . . . . . . . . . . . .  16
+   Appendix B.  Summary of Document Changes  . . . . . . . . . . . .  16
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  16
 
 
@@ -355,9 +355,9 @@ Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
    [RFC2545] typically requires routers that are advertising IPv6 NLRI
    that are directly connected to advertise both an IPv6 global address
    and an IPv6 link-local address.  However, in the case where IPv6
-   link-local peering is being used for route server purposes (TBD -
-   insert draft-kato-bgp-ipv6-link-local ref here), a link-local address
-   may be used in this field.
+   link-local peering is being used for route server purposes
+   [ID.draft-kato-bgp-ipv6-link-local], a link-local address may be used
+   in this field.
 
    The Local Administrator field is sub-divided to contain a field of 4
    flag bits, and an unsigned integer Generation ID.
@@ -526,12 +526,17 @@ Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
 
 4.3.2.  Specific Procedures for Route Server Clients
 
-   A route server client SHALL always create an entry in its Adj-NHIB-
-   Out for its clients, even if a next hop has not been received for
-   this client.  This self-originated entry permits BFD sessions at the
-   clients to be provisioned even if the route exchange via the route
-   server is asymmetric and one router sends routes to the second router
-   in the route server view but not vice versa.
+   A route server SHALL always create an entry in its Adj-NHIB-Out for
+   its clients that are peering with each other through the route
+   server, even if a next hop has not been received for this client.
+   This self-originated entry permits BFD sessions at the clients to be
+   provisioned even if the route exchange via the route server is
+   asymmetric and one router sends routes to the second router in the
+   route server view but not vice versa.
+
+   Route server clients are considered to be peering with each other if
+   the configuration of the route server permits routes from a given
+   pair of peers to be mutually exchanged through the route server.
 
 5.  Processing NHIB State Changes
 
@@ -549,11 +554,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
    to also be provisioned, it may stay in the Down/AdminDown state for a
    period of time.
 
-   Once the BFD session moves to the Up state, the Adj-NHIB-In Reachable
-   state is set to Up.  This NHIB entry is now eligible to be placed in
-   Adj-NHIB-Out table and distributed according to the procedures above.
-   Additionally, local BGP route selection may be impacted by this
-   state.  See section Section 6.
 
 
 
@@ -561,6 +561,12 @@ Bush, et al.             Expires January 2, 2017               [Page 10]
 
 Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
 
+
+   Once the BFD session moves to the Up state, the Adj-NHIB-In Reachable
+   state is set to Up.  This NHIB entry is now eligible to be placed in
+   Adj-NHIB-Out table and distributed according to the procedures above.
+   Additionally, local BGP route selection may be impacted by this
+   state.  See section Section 6.
 
    When the BFD session transitions out of the Up state to the Down
    state, the Adj-NHIB-In Reachable state is set to Down.  The NHIB
@@ -604,12 +610,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
 
    In the event that a given client that supports this feature (per
    capability negoatiation) does not provide any routes containing BGP
-   next hops that would be used to populate an Adj-NHIB-Out entry, the
-   route server SHOULD advertise an entry for such a router using the
-   provided self-originated entry.  This permits the provisioning of BFD
-   peering sessions for continuity check when route exchange via the
-   route server is asymmetric and one client has routes from a second
-   client, but not vice-versa.
 
 
 
@@ -617,6 +617,13 @@ Bush, et al.             Expires January 2, 2017               [Page 11]
 
 Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
 
+
+   next hops that would be used to populate an Adj-NHIB-Out entry, the
+   route server SHOULD advertise an entry for such a router using the
+   provided self-originated entry.  This permits the provisioning of BFD
+   peering sessions for continuity check when route exchange via the
+   route server is asymmetric and one client has routes from a second
+   client, but not vice-versa.
 
    A route server will not generally delete NHIB entries learned in its
    per client Adj-NHIB-In table.  It derives the following information
@@ -659,13 +666,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
    running a BFD session support this.  The use of authentication in BFD
    is OPTIONAL as there is a certain level of trust between the
    operators of the client routers at a particular IXP.  If trust cannot
-   be assumed, it is recommended to use pair-wise keys (how this can be
-   achieved is outside the scope of this document).  The ttl/hop limit
-   values as described in section 5 [RFC5881] MUST be obeyed in order to
-   secure BFD sessions from packets coming from outside the IXP.
-
-
-
 
 
 
@@ -673,6 +673,11 @@ Bush, et al.             Expires January 2, 2017               [Page 12]
 
 Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
 
+
+   be assumed, it is recommended to use pair-wise keys (how this can be
+   achieved is outside the scope of this document).  The ttl/hop limit
+   values as described in section 5 [RFC5881] MUST be obeyed in order to
+   secure BFD sessions from packets coming from outside the IXP.
 
    There is interdependence between the functionality described in this
    document and BFD from an administrative point of view.  To streamline
@@ -715,11 +720,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
    not informed about it because BGP is not able to transport this
    information fast enough.
 
-   As discussed, finding good configuration values is hard so a client
-   router administrator MAY select better suited values depending on the
-   special needs of the particular deployment.
-
-
 
 
 
@@ -729,6 +729,10 @@ Bush, et al.             Expires January 2, 2017               [Page 13]
 
 Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
 
+
+   As discussed, finding good configuration values is hard so a client
+   router administrator MAY select better suited values depending on the
+   special needs of the particular deployment.
 
 8.  Bootstrapping
 
@@ -761,22 +765,18 @@ Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
    hysteresis ("holddown") to next hops that have transitioned from
    reachable to unreachable and back.
 
-11.  Acknowledgments
+11.  References
 
-   The authors would like to thank the authors of
-   [I-D.ietf-idr-bgp-nh-cost] for their work as it was a basis for this
-   proposal.
-
-12.  References
-
-12.1.  Normative References
+11.1.  Normative References
 
    [RFC1997]  Chandra, R., Traina, P., and T. Li, "BGP Communities
               Attribute", RFC 1997, DOI 10.17487/RFC1997, August 1996,
               <http://www.rfc-editor.org/info/rfc1997>.
 
-
-
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <http://www.rfc-editor.org/info/rfc2119>.
 
 
 
@@ -785,11 +785,6 @@ Bush, et al.             Expires January 2, 2017               [Page 14]
 
 Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
 
-
-   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
-              Requirement Levels", BCP 14, RFC 2119,
-              DOI 10.17487/RFC2119, March 1997,
-              <http://www.rfc-editor.org/info/rfc2119>.
 
    [RFC2545]  Marques, P. and F. Dupont, "Use of BGP-4 Multiprotocol
               Extensions for IPv6 Inter-Domain Routing", RFC 2545,
@@ -827,13 +822,18 @@ Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
               DOI 10.17487/RFC7947, September 2016,
               <http://www.rfc-editor.org/info/rfc7947>.
 
-12.2.  Informative References
+11.2.  Informative References
 
-   [I-D.ietf-idr-bgp-nh-cost]
-              Varlashkin, I., Raszuk, R., Patel, K., Bhardwaj, M., and
-              S. Bayraktar, "Carrying next-hop cost information in BGP",
-              draft-ietf-idr-bgp-nh-cost-02 (work in progress), May
-              2015.
+   [ID.draft-kato-bgp-ipv6-link-local]
+              Kato, A. and B. Manning, "BGP4+ Peering Using IPv6 Link-
+              local Address", September 2001,
+              <https://tools.ietf.org/html/draft-kato-bgp-ipv6-link-
+              local-00>.
+
+   [RFC1982]  Elz, R. and R. Bush, "Serial Number Arithmetic", RFC 1982,
+              DOI 10.17487/RFC1982, August 1996,
+              <http://www.rfc-editor.org/info/rfc1982>.
+
 
 
 
@@ -841,10 +841,6 @@ Bush, et al.             Expires January 2, 2017               [Page 15]
 
 Internet-Draft Making RSes aware of IXP Data Link Failures     July 2016
 
-
-   [RFC1982]  Elz, R. and R. Bush, "Serial Number Arithmetic", RFC 1982,
-              DOI 10.17487/RFC1982, August 1996,
-              <http://www.rfc-editor.org/info/rfc1982>.
 
 Appendix A.  Summary of Adj-NHIB-In state
 
@@ -861,18 +857,27 @@ Appendix A.  Summary of Adj-NHIB-In state
     +-----------------------------------+----------------------------+
     | Adj-NHIB-In-Pending-Count         | <16-bit unsigned integer>  |
     +-----------------------------------+----------------------------+
-                 Fig. 1  Per-peer Adj-NHIB-In Table State
+                Fig. 1  Per-peer Adj-NHIB-In Table State
 
 
-    +---------------------------+--------------------------------------+
-    | NextHop                   | <IPv4 Address | IPv6 Address         |
-    +---------------------------+--------------------------------------+
-    | Generation-ID             | <16-bit unsigned integer>            |
-    +---------------------------+--------------------------------------+
-    | Reachable                 | (Unknown | Up | Down | AdminDown)    |
-    +---------------------------+--------------------------------------+
-               Fig. 2  Per-peer, per-nexthop  Adj-NHIB-In State
+   +---------------------------+--------------------------------------+
+   | NextHop                   | <IPv4 Address | IPv6 Address         |
+   +---------------------------+--------------------------------------+
+   | Generation-ID             | <16-bit unsigned integer>            |
+   +---------------------------+--------------------------------------+
+   | Reachable                 | (Unknown | Up | Down | AdminDown)    |
+   +---------------------------+--------------------------------------+
+                 Fig. 2  Per-peer, per-nexthop  Adj-NHIB-In State
 
+
+Appendix B.  Summary of Document Changes
+
+   idr-01 to idr-02:  Move from BGP-LS to RS-Reachable extended
+     community.  Lots of editorial changes.
+   idr-00 to idr-01:  Add BGP Capability.  Move from NH-Cost to BGP-LS.
+   ymbk-01 to idr-00:  No technical changes; adopted by IDR.
+   ymbk-00 to ymbk-01:  Clarifications to BFD procedures.  Use BFD state
+     as an input to BGP route selection.
 
 Authors' Addresses
 
@@ -883,11 +888,6 @@ Authors' Addresses
    US
 
    Email: randy@psg.com
-
-
-
-
-
 
 
 
