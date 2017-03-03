@@ -1,13 +1,9 @@
 <?xml version="1.0"?>
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
-<!ENTITY RFC1982 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.1982.xml">
 <!ENTITY RFC1997 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.1997.xml">
 <!ENTITY RFC2119 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml">
-<!ENTITY RFC2545 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2545.xml">
 <!ENTITY RFC4271 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4271.xml">
-<!ENTITY RFC4360 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4360.xml">
-<!ENTITY RFC5492 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5492.xml">
-<!ENTITY RFC5701 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5701.xml">
+<!ENTITY RFC4272 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4272.xml">
 <!ENTITY RFC5880 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5880.xml">
 <!ENTITY RFC5881 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5881.xml">
 <!ENTITY RFC7947 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7947.xml">
@@ -97,7 +93,7 @@
 			</address>
 		</author>
 
-		<date month="July" year="2016" />
+		<date month="March" year="2017" />
 
 		<abstract>
 			<t>
@@ -110,7 +106,7 @@
 				of
 				BFD between the two peering routers to detect a data plane
 				failure, and then
-				uses a newly defined BGP extended community &mdash; RS-Reachable &mdash; to signal the state of the
+				uses a newly defined BGP SAFI to signal the state of the
 				data link to the route server(s).
 			</t>
 
@@ -150,20 +146,18 @@
 			</t>
 			<t>
 				To remedy this, two basic problems need to be solved:
-			</t>
-			
-			<t>
-				1. Client routers must have a means of verifying connectivity
-				amongst themselves, and
-			</t>
-			<t>
-				2. Client routers must have a means of communicating the knowledge so
-				gained back to the route server.
+				<list style="numbers">
+				<t>Client routers must have a means of verifying connectivity
+				amongst themselves, and</t>
+				<t>Client routers must have a means of communicating the knowledge so
+				gained back to the route server.</t>
+				</list>
 			</t>
 			<t>
 				The first can be solved by application of Bidirectional Forwarding Detection
 				<xref target="RFC5880" />. The second can be solved
-				by use of the BGP RS-Reachable extended community defined in this document.
+				by use of the exchange BGP routes using the
+				RS-Reachable SAFI defined in this document.
 			</t>
 			<t>
 				Throughout this document, we generally assume that the route server
@@ -179,11 +173,11 @@
 		<section anchor="operation" title="Operation">
 			<t>
 				Below, we detail procedures where a route server tells its client routers
-				about other client nexthops by sending it RS-Reachable extended communities,
+				about other client nexthops by sending it RS-Reachable routes,
 				the client router verifies connectivity to those other client routers
 				using BFD
-				and communicates its findings back to the route server using RS-Reachable extended communities.
-				The route server uses the received routes with RS-Reachable extended communities as input
+				and communicates its findings back to the route server using RS-Reachable routes.
+				The route server uses the received routes with RS-Reachable SAFI as input
 				to the route selection process it performs on behalf of the client.
 			</t>
 
@@ -201,22 +195,15 @@
 					In effect, this requirement amounts to knowing the BGP next hops the
 					route server is aware of for the particular per-client Loc-RIB
 					(see <xref target="RFC7947">section 2.3.2.1.</xref>).
-					We introduce a new table for each client to store known next hops, their compatibility with this proposed solution
-					and their learned reachability. We call these tables
-					per-client Next Hop Information Base (NHIB). The NHIB is communicated 
-					to the Route Server using RS-Reachable extended communities on 
-					IXP-specific routes reserved for this purpose.
+					We introduce a new table for each client to store known next hops, their
+					compatibility with this proposed solution and their learned reachability. We
+					call these tables per-client Next Hop Information Base (NHIB). The NHIB is
+					communicated to the Route Server using RS-Reachable routes.
 				</t>
 
 				<t>
-					At the route server, the NHIB for each client is populated with the next hops from its Loc-RIB.
-					If the BGP capabilities learned during BGP session setup identify a next hop as compatible with
-					this proposal, this is reflected in the NHIB. Initially, it is assumed that the 
-					client router is able to reach its next hops which is stored in the NHIB.
-				</t>
-				<t>
-					If a next hop is added to the NHIB for a particular client, an entry SHOULD be added to the router server's Adj-NHIB-Out.
-					If a next hop is removed from a NHIB, the corresponding entry in the Adj-NHIB-Out MUST be removed.
+					At the route server, the Adj-NHIB-Out for each client is populated with the next
+					hops from the Adj-Ribs-In for the route server view used for that client.
 				</t>
 
 				<t>
@@ -236,8 +223,8 @@
 
 				<t>
 					The client router maintains its own NHIB in order to keep track of its
-					(potential) next hops, their capabilities as learned from the route server,
-					and their reachability. The NHIB is updated according to the Adj-NHIB-In and client routers own
+					(potential) next hops and their reachability. The NHIB is updated according to
+					the Adj-NHIB-In and client routers own
 					tests to verify connectivity to next hops.
 				</t>
 				
@@ -260,12 +247,10 @@
 				<t>
 					If the test of connectivity between one client router and another client router
 					has failed, the client router that detected this failure should perform the
-					connectivity test for a configurable amount of time (preferable 24 hours) on
-					a regular basis (e.g. every 5 minutes). If during this time no connectivity can
-					be restored no more testing is performed until manually changed or the client router is rebooted.
+					connectivity test for a configurable amount of time, preferably 24 hours.
+					If during this time no connectivity can be restored no more testing is performed
+					until manually changed or the client router is rebooted.
 				</t>
-				<!-- XXX JMH - BFD by default would fall back to its "1 second" default sedate timers.  5 minutes, per
-				above, may be too much. -->
 			</section>
 		</section>
 		
@@ -305,283 +290,82 @@
 					</t>
 				</list>
 			</t>
-			<section title="Using extended communities to carry NHIB state">
-				<t>
-					A challenge in IXP route server environments is that it is common for only IPv4
-					and/or IPv6 unicast address family/sub-address family to be configured.  Thus,
-					there is a desire to represent information in the NHIB solely within those
-					address families.  This document proposes to carry NHIB entries in the form of
-					BGP extended communities (<xref target="RFC4360"/>, <xref target="RFC5701"/>)
-					defined also in this document.
-				</t>
-				<t>
-					Since BGP extended communities are advertised as attributes of a route, it is
-					necessary to chose one or more IP prefixes for BGP's NLRI to carry these
-					extended communities.  It is RECOMMENDED that these prefixes be chosen from the
-					set of addresses considered "martian" and expected to be dropped by default by
-					applications.
-				</t>
-				<t>
-					This proposal suggests 127.254/16 as the range of IPv4 prefixes
-					to carry these communities and the similar mapped IPv4 address of
-					0::FFFF:127.254.0.0/112 for IPv6.  The procedure to exchange the NHIB using the
-					communities bound to the prefixes is documented below.
-				</t>
-				<t>
-					It is REQUIRED that BGP routes carrying NHIB state carry the BGP NO_ADVERTISE
-					community <xref target="RFC1997"/> to prevent their propagation outside of the
-					IXP BGP environment.  NHIB Routes not carrying the NO_ADVERTISE community MUST
-					be ignored.
-				</t>
-				<section title="The RS-Reachable Extended Community">
-					<t>
-						A new BGP extended community <xref target="RFC4360"/>, RS-Reachable, is defined
-						by this document.  RS-Reachable is an IPv4 Address Specific Extended Community
-						with a Type of 0x41 (IANA Assigned, Non-Transitive) and a Sub-Type of TBD1.
-					</t>
-					<t>
-						The Global Administrator field contains either an IPv4 next hop address
-						to be stored in the receiving router's NHIB, or the lower two octets
-						will store a counter value for the distinguished NHIB-Count prefix.
-						When the Global Administrator field contains the counter value, the
-						remaining octets of that field MUST be set to zero and SHOULD be ignored
-						upon receipt.
-					</t>
-					<t>
-						The Local Administrator field is sub-divided to contain a field of 4
-						flag bits, and an unsigned integer Generation ID.
-					</t>
-					<t>
-						<list><t>
-						The C-bit corresponds to the advertising client role of the NHIB entry:
-						<list style="hanging">
-							<t hangText="0:">The route server is advertising an IPv4 next
-							hop to its route-server clients.</t>
-							<t hangText="1:">A route server client is advertising an
-							reachable IPv4 nexthop to the route server.</t>
-						</list>
-						The R bits are reserved and MUST be set to zero on transmission and
-						SHOULD be ignored upon receipt.
-						</t></list>
-					</t>
-					<t>
-                                                <figure><artwork><![CDATA[
-    0                   1                   2                   3
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |      0x41     | Sub-Type TBD1 |    IPv4 Nexthop (or zero)     |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |   IPv4 Nexthop (or counter)   |C R R R|     Generation ID     |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
-                                                ]]></artwork></figure>
-                                        </t>
-                                </section>
-                                <section title="The RS-Reachable-v6 Extended Community">
-                                        <t>
-                                                A new IPv6 Address Specific BGP extended community <xref target="RFC5701"/>,
-                                                RS-Reachable-v6, is defined by this document.  RS-Reachable-v6 is an IPv6
-                                                Address Specific Extended Community with a Type of 0x40 (Non-Transitive) and a
-                                                Sub-Type of TBD2. 
-                                        </t>
-					<t>
-						The Global Administrator field either contains an IPv6 global next hop
-						address to be stored in the receiving router's NHIB, or the lower two
-						octets  will store a counter value for the distinguished NHIB-Count
-						prefix.  When the Global Administrator field contains the counter value,
-						the remaining octets of that field MUST be set to zero and SHOULD be
-						ignored upon receipt.
-					</t>
-					<t>
-						<xref target="RFC2545"/> typically requires routers that are advertising
-						IPv6 NLRI that are directly connected to advertise both an IPv6 global
-						address and an IPv6 link-local address.  However, in the case where IPv6
-						link-local peering is being used for route server purposes 
-						<xref target="ID.draft-kato-bgp-ipv6-link-local"/>,
-						a link-local address may be used in this field.
-					</t>
-					<t>
-						The Local Administrator field is sub-divided to contain a field of 4
-						flag bits, and an unsigned integer Generation ID.
-					</t>
-					<t>
-						<list><t>
-						The C-bit corresponds to the advertising client role of the NHIB entry:
-						<list style="hanging">
-							<t hangText="0:">The route server is advertising an IPv4 next
-							hop to its route-server clients.</t>
-							<t hangText="1:">A route server client is advertising an
-							reachable IPv4 nexthop to the route server.</t>
-						</list>
-						The R bits are reserved and MUST be set to zero on transmission and
-						SHOULD be ignored upon receipt.
-						</t></list>
-					</t>
-                                        <t>
-                                                <figure><artwork><![CDATA[
-    0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |      0x40     | Sub-Type TBD2 |    IPv6 Nexthop (or zero)     |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                     IPv6 Nexthop (or zero)                    |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                     IPv6 Nexthop (or zero)                    |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |                     IPv6 Nexthop (or zero)                    |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-   |   IPv6 Nexthop (or counter)   |C R R R|     Generation ID     |
-   +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-                                                ]]></artwork></figure>
-					</t>
-				</section>
+			<section title="Using the RS-Reachable SAFI to carry NHIB state">
+				<t>
+					A new BGP SAFI, the RS-Reachable SAFI, is defined in this document.  It has been
+					assigned a value TBD.  A route server or a route server client using the
+					procedures in this document negotiate the RS-Reachable SAFI for the IPv4 and/or
+					IPv6 AFIs to carry NHIB entries.
+				</t>
+				<t>
+					NHIB entries are exchanged as host routes using the NLRI format described in
+					<xref target="RFC4271"/>, section 4.3.  If a NHIB entry for a given AFI is
+					received with an inappropriate prefix length, that NLRI MUST BE ignored.
+				</t>
+				<t>
+					NHIB entries MUST NOT be propagated from one BGP peering session to another;
+					the routes are not transitive.  To help enforce this expected behavior,
+					RS-Reachable routes MUST carry the NO_ADVERTISE community <xref
+					target="RFC1997"/>.  RS-Reachable routes not carrying this community MUST BE
+					ignored.
+				</t>
+				<t>
+					If a NHIB entry is received from a BGP speaker and that entry is not part of the
+					sub-network for that BGP session, that NLRI MUST BE ignored.  This prevents
+					erroneous BFD peering session from being provisioned outside of the IXP
+					network.
+				</t>
 			</section>
-			<section title="Advertising NHIB entries as BGP Routes">
-				<t>
-					The primary challenge of carrying NHIB state in BGP is exchanging consistent
-					sets of NHIB state.  The BGP specification does not mandate that its routes are
-					distributed in any particular order.  That specification also does not place any
-					bounds on the time it takes to distribute its routes.  As a consequence, it is
-					necessary to have a scheme whereby the multiple entries constituting the NHIB
-					can be consistently exchanged.
-				</t>
-				<t>
-					The necessary state for doing this exchange includes:
-					<list style="symbols">
-						<t>Knowing the total number of NHIB entries to be exchanged.</t>
-						<t>Grouping the NHIB entries into a consistent set, called a
-						Generation.</t>
-					</list>
-				</t>
-				<t>
-					As noted above, the loopback address ranges of 127.254/16 and the similar IPv4
-					mapped range of 0::FFFF:127.254.0.0/112 are used for prefixes to carry
-					RS-Reachable extended communities.  
-				</t>
-				<t>
-					The first address of this range, i.e. 127.254.0.0 or 0::FFFF:127.254.0.0, is
-					distinguished and is called the NHIB-Count prefix.  It will carry a single
-					RS-Reachable extended community.  It will have the following properties:
-					<list style="symbols">
-						<t>The last two octets of the Nexthop field (least significant octets)
-						will carry the total number of NHIB entries, represented as an unsigned
-						integer, in this generation of the NHIB.</t>
-						<t>The Generation ID field is considered the "current generation
-						value".</t>
-					</list>
-					It SHALL be considered an error to for this distinguished prefix to carry more
-					than one RS-Reachable extended community.  In the event that more than one is
-					received, the receiving BGP speaker MUST IGNORE the received NHIB state.
-				</t>
-				<t>
-					The remaining addresses in these ranges will carry one or more RS-Reachable
-					extended communities.  It is RECOMMENDED that these routes carry multiple
-					communities to reduce the number of BGP routes that must be exchanged to
-					synchronize NHIB state.
-				</t>
-				<section title="Procedures for the Router Receiving NHIB Entries">
-				<section title="C-Bit Validation">
-				<t>
-					When a BGP speaker receives routes from the assigned NHIB prefix range, it
-					examines each RS-Reachable extended community:
 
-					<list style="symbols">
-						<t>If the BGP speaker is a route-server and receives routes with the C
-						bit in the Local Administrator field set to 0, it discards this extended
-						community.</t>
-						<t>Similarly, if the BGP speaker is a route server client and receives
-						routes with the C-bit set to 1, it discards this extended community.</t>
-					</list>
-
-					This procedure mitigates issues wherein the BGP speaker may be injecting
-					inappropriate NHIB state to its peer.
-				</t>
-				</section>
-				<section title="Generation ID Procedures">
+			<section title="Specific Procedures for Route Server Clients">
 				<t>
-					When a BGP speaker receives routes with RS-Reachable extended communities with a
-					valid C-bit, it examines its Adj-NHIB-In for that peer for the nexthop address
-					of the RS-Reachable entry in question.
+					A route server SHALL always create an entry in its Adj-NHIB-Out for its clients
+					that are peering with each other through the route server, even if a next hop
+					has not been received for this client.  This self-originated entry permits BFD
+					sessions at the clients to be provisioned even if the route exchange via the
+					route server is asymmetric and one router sends routes to the second router in
+					the route server view but not vice versa.
 				</t>
 				<t>
-					If the received BGP NLRI is the distinguished NHIB-Count prefix:
-					<list style="symbols">
-						<t>The route is evaluated to ensure it carries exactly one RS-Reachable
-						prefix.  If it does not, the Adj-NHIB-In table for this BGP speaker is
-						set to the Invalid state.  Otherwise, it is set to the Valid state.</t>
-						<t>The Adj-NHIB-In-Pending-Count variable is set to the value carried in
-						the final two octets of the RS-Reachable Global Administrator field.
-						The Adj-NHIB-In-Pending-Generation-ID variable is set from the
-						Generation ID carried in the Local Administrator field of the
-						community.</t>
-					</list>
-
-					If the received NLRI is NOT the distinguished NHIB-Count prefix:
-
-					<list style="symbols">
-						<t>If no entry exists for that Adj-NHIB-In, it is added and the
-						Generation ID is set to the value in the the community.</t>
-						<t>If an entry exists, and its Generation ID is determined to have
-						increased, the Generation ID for that entry is updated to the value
-						contained in the community.</t>
-					</list>
+					Route server clients are considered to be peering with each other if the
+					configuration of the route server permits routes from a given pair of peers to
+					be mutually exchanged through the route server.
 				</t>
-				<t>
-					The procedures documented in <xref target="RFC1982"/> can be used to determine
-					if the Generation ID has increased.
-				</t>
-				<t>
-					Once all valid RS-Reachable extended communities have been processed for a given
-					BGP route, the Adj-NHIB-In for that peer is examined:
-					
-					<list style="symbols">
-						<t>The largest NHIB Generation ID, Adj-NHIB-In-Max-Generation-ID, is
-						determined by examining all entries in that table.</t>
-						<t>If the value of that Adj-NHIB-In-Max-Generation-ID is identical to the 
-						value of the Adj-NHIB-In-Pending-Generation-ID variable, and the count
-						of NHIB entries containing that Generation ID is equal to the
-						Adj-NHIB-In-Pending-Count variable, all Adj-NHIB-In entries with a
-						different Generation ID are deleted.</t>
-					</list>
-				</t>
-				</section>
-				</section>
 			</section>
-			<section title="Procedures for the Router Sending NHIB Entries">
-				<section title="General Procedures">
+			<section title="The RS-Reachable Control Extended Community">
+                                <figure><artwork><![CDATA[
+ 0                   1                   2                   3
+ 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|      0x43     | Sub-Type TBD1 |    Reserved (Must be Zero)    |
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+|     Reserved (Must be Zero)   |            Flags            |F|
++-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+                                ]]></artwork></figure>
+
 				<t>
-					A Generation ID is state local to a Adj-NHIB-Out.  It is initialized to 0.
+					The RS-Reachable Control Extended Community is used to signal additional
+					information in RS-Reachable NLRI.  Currently, a two-octet flag field is
+					utilized for Flags.  The remainder of the extended community is currently
+					reserved and its contents MUST be set to zero when originated and SHOULD be
+					ignored upon receipt.
 				</t>
 				<t>
-					When the contents of the Adj-NHIB-Out have changed, the NHIB-Count distinguished
-					prefix will be created/updated with a RS-Reachable extended community placing
-					the count of the entries in that Adj-NHIB-Out in the count field (contained
-					within the Global Administrator field) placing the count of the entries in that
-					Adj-NHIB-Out in the count field (contained within the Global Administrator
-					field).  The Generation ID will be incremented, wrapping back to 0 if necessary.
-				</t>
-				</section>
-				<section title="Specific Procedures for Route Server Clients">
-				<t>
-					A route server SHALL always create an entry in its Adj-NHIB-Out for its
-					clients that are peering with each other through the route server, even if a next hop has not been received for this client.  This
-					self-originated entry permits BFD sessions at the clients to be provisioned
-					even if the route exchange via the route server is asymmetric and one router
-					sends routes to the second router in the route server view but not vice versa.
+					A single flag is currently reserved in this proposal:
 				</t>
 				<t>
-					Route server clients are considered to be peering with
-					each other if the configuration of the route server
-					permits routes from a given pair of peers to be mutually
-					exchanged through the route server.
+					<list>
+						<t>F: Flush received NHIB state.</t>
+					</list>
 				</t>
-				</section>
 			</section>
 		</section>
 
 		<section title="Processing NHIB State Changes">
 			<section title="Route Server Client Procedures for NHIB Changes">
 				<t>
-					When entries are added to the a Route server client's Adj-NHIB-In for a route
+					When entries are added to the a route server client's Adj-NHIB-In for a route
 					server peering session, it will then attempt to verify connectivity to the BGP
 					nexthop for that entry.  The procedure described in this specification utilizes
 					BFD; other mechanisms are permitted but are out of scope of this document.
@@ -596,7 +380,7 @@
 					Once the BFD session moves to the Up state, the Adj-NHIB-In Reachable state is
 					set to Up.  This NHIB entry is now eligible to be placed in Adj-NHIB-Out table
 					and distributed according to the procedures above.  Additionally, local BGP
-					route selection may be impacted by this state.  See section 
+					route selection may be impacted by this state.  See 
 					<xref target="routeselectionprocess"/>.
 				</t>
 				<t>
@@ -607,8 +391,14 @@
 				</t>
 				<t>
 					If the BFD session transitions out of the Up state to the AdminDown state, the
-					Adj-NHIB-In Reachable state is set to AdminDown.  It is RECOMMENDED that the
-					NHIB entry NOT be removed from the Adj-NHIB-Out table.  AdminDown could imply
+					Adj-NHIB-In Reachable state is set to AdminDown.  During this transition, the
+					NHIB entry is not be removed from the Adj-NHIB-Out table.  Instead, the
+					RS-Reachable Extended Community is added to the route with the F (flush) bit
+					set.  This signals the route server should remove cached state for this entry.
+				</t>
+					
+				<t>
+					The motivation for this behavior is that AdminDown could imply
 					one of two possible circumstances:
 					
 					<list style="symbols">
@@ -623,6 +413,14 @@
 
 					An implementation of these procedures MUST provide an administrative mechanism
 					to clear such AdminDown entries from the Adj-NHIB-Out table.
+				</t>
+				<t>
+					When entries are removed from the route server client's Adj-NHIB-In for a route
+					server peering session, the client MAY delay de-provisioning the BFD peering
+					session.  If the client delays de-provisioning the session, it should remove it
+					if the BFD session transitions to the Down or AdminDown states.
+					The client should remove the entry from its Adj-NHIB-Out table regardless of the
+					state of the BFD session.
 				</t>
 			</section>
 
@@ -639,14 +437,14 @@
 				<t>
 					The route-server will place the collection of received BGP next hops from its
 					clients into its per client Adj-NHIB-Out tables when at least one of the route
-					server peers that supports this procedure has advertised the associated BGP
-					capability.  It will then advertise them per the procedures above.  This informs
+					server peers that supports this procedure has negotiated the RS-Reachable SAFI.
+					It will then advertise them per the procedures above.  This informs
 					the route server clients of the available BGP nexthops visible to the route
 					server supporting this feature.
 				</t>
 				<t>
-					In the event that a given client that supports this feature (per capability
-					negoatiation) does not provide any routes containing BGP next hops that would be
+					In the event that a given client that supports this feature 
+					does not provide any routes containing BGP next hops that would be
 					used to populate an Adj-NHIB-Out entry, the route server SHOULD advertise an
 					entry for such a router using the provided self-originated entry.  This permits
 					the provisioning of BFD peering sessions for continuity check when route
@@ -655,8 +453,9 @@
 				</t>
 				<t>
 					A route server will not generally delete NHIB entries learned in its per client
-					Adj-NHIB-In table.  It derives the following information from the presence and
-					state, or absence, of an entry:
+					Adj-NHIB-In table when processing a withdraw from the route server client.  It
+					derives the following information from the presence and state, or absence, of an
+					entry:
 					
 					<list style="symbols">
 						<t>When an entry is present, it means that the route server client has
@@ -675,6 +474,13 @@
 						information.</t>
 					</list>
 				</t>
+				<t>
+					However, if the route server receives an NHIB entry with the F (flush) bit set
+					the RS-Reachable Control Extended Community, it will remove the entry from the
+					Adj-NHIB-In table for that peer.  Similarly, if the entry is being removed
+					because the peering session with the client has closed, entries will also be
+					removed.
+				</t>
 			</section>
 		</section>
 
@@ -684,13 +490,14 @@
 				A client router detecting an unreachable next hop signals this information 
 				to the route server as described above.
 				Also, it treats the routes as unresolvable as per
-				<xref target="RFC4271">section 9.1.2.1</xref> and proceeds with route selection as normal.
+				<xref target="RFC4271">section 9.1.2.1</xref> and proceeds with route selection as
+				normal.
 			</t>
 
 			<t>
-				Changes in nexthop reachability via these mechanisms should receive some amount of consideration
-				toward avoiding unnecessary route flapping.  Similar mechanisms exist in IGP implementations
-				and should be applied to this scenario.
+				Changes in nexthop reachability via these mechanisms should receive some amount of
+				consideration toward avoiding unnecessary route flapping.  Similar mechanisms exist in
+				IGP implementations and should be applied to this scenario.
 			</t>
 		</section>
 		
@@ -716,13 +523,13 @@
 					To streamline behaviour of different implementations the following
 					is RECOMMENDED:
 					<list style='symbols'>
-                		<t>If BFD is administratively shut down by the administrator of
-                		a client router then the functionality described in this document
-                		MUST also be administratively shut down.</t>
-                		<t>If the administrator enables the functionality described in
-                		this document on a client router then BFD MUST be automatically
-                		enabled.</t>
-            		</list>
+						<t>If BFD is administratively shut down by the administrator of
+						a client router then the functionality described in this document
+						MUST also be administratively shut down.</t>
+						<t>If the administrator enables the functionality described in
+						this document on a client router then BFD MUST be automatically
+						enabled.</t>
+					</list>
 				</t>
 				
 				<t>
@@ -730,38 +537,43 @@
 					(see <xref target="RFC5880">section 6.8.1</xref>) are RECOMMENDED in
 					order to allow a fast detection of lost data plane connectivity:
 					<list style='symbols'>
-                		<t>DesiredMinTxInterval: 1,000,000 (microseconds)</t>
-                		<t>RequiredMinRxInterval: 1,000,000 (microseconds)</t>
-                		<t>DetectMult: 3</t>
-            		</list>
+						<t>DesiredMinTxInterval: 1,000,000 (microseconds)</t>
+						<t>RequiredMinRxInterval: 1,000,000 (microseconds)</t>
+						<t>DetectMult: 3</t>
+					</list>
 				</t>
 
 				<t>
-            		The configuration values above are a trade-off between fast detection of data plane connectivity and
-            		the load client routers must handle keeping up the BFD communication. Selecting smaller
-            		DesiredMinTxInterval and RequiredMinRxInterval values generates excessive BFD packets,
-            		especially at larger IXPs with many hundreds of client routers.
-            	</t>
+					The configuration values above are a trade-off between fast detection of data
+					plane connectivity and the load client routers must handle keeping up the BFD
+					communication. Selecting smaller DesiredMinTxInterval and RequiredMinRxInterval
+					values generates excessive BFD packets, especially at larger IXPs with many
+					hundreds of client routers.
+				</t>
 
-            	<t>
-            		The configuration values above are selected in order to handle brief interruptions in the data plane.
-            		Otherwise, if a BFD session detects a brief data plane interruption to a particular client router, it
-            		will signal to the route server that it should remove routes from this client router and
-            		shortly thereafter to add the routes again. This is disruptive and computationally expensive
-            		on the route server.
-            	</t>
+				<t>
+					The configuration values above are selected in order to handle brief
+					interruptions in the data plane.  Otherwise, if a BFD session detects a brief
+					data plane interruption to a particular client router, it will signal to the
+					route server that it should remove routes from this client router and shortly
+					thereafter to add the routes again. This is disruptive and computationally
+					expensive on the route server.
+				</t>
 
-            	<t>
-            		The configuration values above are also partially impacted by BGP advertisement time in reaction
-            		to events from BFD. If the configuration values are selected so that BFD detects data plane interruptions
-            		faster than the BGP advertisement time, a data plane connectivity flap could be detected by BFD but
-            		the route server is not informed about it because BGP is not able to transport this information fast enough.
-            	</t>
+				<t>
+					The configuration values above are also partially impacted by BGP advertisement
+					time in reaction to events from BFD. If the configuration values are selected so
+					that BFD detects data plane interruptions faster than the BGP advertisement
+					time, a data plane connectivity flap could be detected by BFD but the route
+					server is not informed about it because BGP is not able to transport this
+					information fast enough.
+				</t>
 
-            	<t>
-            		As discussed, finding good configuration values is hard so a client router administrator MAY
-            		select better suited values depending on the special needs of the particular deployment.
-            	</t>
+				<t>
+					As discussed, finding good configuration values is hard so a client router
+					administrator MAY select better suited values depending on the special needs of
+					the particular deployment.
+				</t>
 
             	<!-- BFD flapping handling meachanism -->
             	<!-- Comment Jeff: Whether we need to specify that the remote nexthop reachability mechanism is damped in the spec is an open question. -->
@@ -775,27 +587,6 @@
 			</t>
 		</section>
 
-		<section anchor="capability" title="Capability Detection">
-                        <t>
-                                Support for the procedures in this document is signaled between two BGP speakers using BGP Capabilities
-                                Advertisement <xref target="RFC5492"/>.  The Capability Code field is set to TBD (to be assigned by IANA)
-                                and the Capability Length field is set to 4.  The Capability Value is defined as:
-                        </t>
-                        <t>
-                                <figure><artwork><![CDATA[
-       0       7      15      23      31
-       +-------+-------+-------+-------+
-       |           Reserved            |
-       +-------+-------+-------+-------+
-                                ]]></artwork></figure>
-                        </t>
-                        <t>
-                                The Capability Value field represents a series of flag bits reserved for future extensions to this
-                                specification and for support of this version MUST be set to 0 on advertisement and SHOULD be ignored upon
-                                receipt.
-                        </t>
-		</section>
-
 		<section anchor="other" title="Other Considerations">
 			<t>
 				For purposes of routing stability, implementations may wish to apply
@@ -804,12 +595,47 @@
 			</t>
 		</section>
 
-		<!-- section anchor="ack" title="Acknowledgments">
+		<section title="IANA Considerations">
 			<t>
-				The authors would like to thank the authors of <xref target="I-D.ietf-idr-bgp-nh-cost" /> for their work as it was a basis for this proposal.
+				IANA is requested to allocate a value from the Subsequent Address Family Identifiers
+				(SAFI) Parameters registry for this proposal.  Its Description in that registry shall
+				bgp RS-Reachable with a Reference of this RFC.
 			</t>
-		</section -->
+			<t>
+				IANA is request to allocate a value from the Non-Transitive Opaque Extended Community
+				Sub-Types registry.  Its Name will be "RS-Reachable Control Extended Community" with a
+				Reference of this RFC.
+			</t>
+		</section>
 
+		<section title="Security Considerations">
+			<t>
+				The mechanism in this document permits route server clients to influence the contents of
+				the route server's Adj-Ribs-Out through its reports of NHIB state using the Rs-Reachable
+				SAFI.  Since this state is per-client, if a route server client is able to inject
+				Rs-Reachable routes for another route server's BGP session to a client, it can cause the
+				route server to select different forwarding than otherwise expected.  This issue may be
+				mitigated using transport security on its session to route server clients.  See <xref
+				target="RFC4272"/>.
+			</t>
+			<t>
+				In the event that route server clients provision the RS-Reachable SAFI amongst
+				themselves, this is an error but will have no inappropriate impacts on forwarding.
+				It is normally incorrect provisioning that an IXP client has a BGP session with
+				another IXP client, Should they negotiate the RS-Reachable SAFI and send RS-Reachable
+				routes, this only serves to signal that BGP Speaker, when not operating as a route
+				server, to attempt to set verify connectivity with the hosts in the received NLRI.
+				While this may potentially request a large number of sessions, the default BFD timers
+				prevent excess packets from being sent from inappropriately provisioned sessions.
+			</t>
+			<t>
+				The reachability tests between route server clients themselves may be a target for
+				attack.  Such attacks may include forcing a BFD session Down through injecting false BFD
+				state.  A less likely attack includes forcing a BFD session to stay Up when its real
+				state is Down.  These attacks may be mitigated using the BFD security mechanisms defined
+				in <xref target="RFC5880"/>.
+			</t>
+		</section>
 	</middle>
 
 	<back>
@@ -817,29 +643,13 @@
 		<references title="Normative References">
 		&RFC1997;
 		&RFC2119;
-		&RFC2545;
 		&RFC4271;
-		&RFC4360;
-		&RFC5492;
-		&RFC5701;
 		&RFC5880;
 		&RFC5881;
 		&RFC7947;
 		</references>
 		<references title="Informative References">
-		    <reference anchor="ID.draft-kato-bgp-ipv6-link-local" target="https://tools.ietf.org/html/draft-kato-bgp-ipv6-link-local-00">
-		      <front>
-			<title>BGP4+ Peering Using IPv6 Link-local Address</title>
-			<author initials="A" surname="Kato" fullname="Akira Kato">
-			    <organization>USC/ISI &amp; WIDE Project</organization>
-			</author>
-			<author initials="B" surname="Manning" fullname="Bill Manning">
-			    <organization>USC/ISI</organization>
-			</author>
-			<date month="September" year="2001"/>
-		      </front>
-		    </reference>
-		&RFC1982;
+		&RFC4272;
 		</references>
 
 		<section title="Summary of Adj-NHIB-In state">
@@ -853,19 +663,11 @@
  | Client Role                       | (Route-Server |            |
  |                                   |  Route-Server-Client       |
  +-----------------------------------+----------------------------+
- | Table-State                       | (Valid | Invalid)          |
- +-----------------------------------+----------------------------+
- | Adj-NHIB-In-Pending-Generation-Id | <16-bit unsigned integer>  |
- +-----------------------------------+----------------------------+
- | Adj-NHIB-In-Pending-Count         | <16-bit unsigned integer>  |
- +-----------------------------------+----------------------------+
              Fig. 1  Per-peer Adj-NHIB-In Table State
 
 
 +---------------------------+--------------------------------------+
 | NextHop                   | <IPv4 Address | IPv6 Address         |
-+---------------------------+--------------------------------------+
-| Generation-ID             | <16-bit unsigned integer>            |
 +---------------------------+--------------------------------------+
 | Reachable                 | (Unknown | Up | Down | AdminDown)    |
 +---------------------------+--------------------------------------+
@@ -879,8 +681,8 @@
 		<section title="Summary of Document Changes">
 		    <t>
 		    <list style="hanging" hangIndent="2">
-			<t hangText="idr-01 to idr-02:">Move from BGP-LS to RS-Reachable extended
-			   community.  Lots of editorial changes.</t>
+			<t hangText="idr-01 to idr-02:">Move from BGP-LS to RS-Reachable SAFI.
+			   Lots of editorial changes.</t>
 			<t hangText="idr-00 to idr-01:">Add BGP Capability.  Move from NH-Cost to BGP-LS.</t>
 			<t hangText="ymbk-01 to idr-00:">No technical changes; adopted by IDR.</t>
 			<t hangText="ymbk-00 to ymbk-01:">Clarifications to BFD procedures. Use BFD state
