@@ -142,21 +142,23 @@
 				Since the data plane is not congruent with the control
 				plane, the client routers on the IXP can lose data
 				connectivity without the
-				control plane - the route server - being aware of it.
+				control plane - the route server - being
+				aware of it, resulting in significant
+				data loss.
 			</t>
 			<t>
 				To remedy this, two basic problems need to be solved:
 				<list style="numbers">
 				<t>Client routers must have a means of verifying connectivity
 				amongst themselves, and</t>
-				<t>Client routers must have a means of communicating the knowledge so
-				gained back to the route server.</t>
+				<t>Client routers must have a means of communicating the knowledge
+				of the failure back to the route server.</t>
 				</list>
 			</t>
 			<t>
 				The first can be solved by application of Bidirectional Forwarding Detection
 				<xref target="RFC5880" />. The second can be solved
-				by use of the exchange BGP routes using the
+				by exchanging BGP routes which use the
 				RS-Reachable SAFI defined in this document.
 			</t>
 			<t>
@@ -184,21 +186,25 @@
 			<section anchor="discovery"
 				title="Mutual Discovery of Route Server Client Next-Hops">
 				<t>
-					Strictly speaking, a client router of a route server doesn't need to know 
-					of other control-plane client routers. Instead, for validation purposes,
-					it needs to know all of the next hops that the route server might
-					choose to send the client router; i.e., to know of potential forwarding
-					plane relationships.
+					Strictly speaking, a route server client does not need to know of
+					other control-plane clients. For validation purposes, it only needs
+					to know the set of next hops the route server might choose to send to
+					it; i.e., to know all potential forwarding plane relationships.
 				</t>
 
 				<t>
-					In effect, this requirement amounts to knowing the BGP next hops the
+					This requirement amounts to knowing the BGP next hops the
 					route server is aware of for the particular per-client Loc-RIB
 					(see <xref target="RFC7947">section 2.3.2.1.</xref>).
 					We introduce a new table for each client to store known next hops, their
 					compatibility with this proposed solution and their learned reachability. We
 					call these tables per-client Next Hop Information Base (NHIB). The NHIB is
 					communicated to the Route Server using RS-Reachable routes.
+				</t>
+
+				<t>
+					The NHIB is not large; the set of routers in the ASs the client has
+					asked the RS to maintain in its view.
 				</t>
 
 				<t>
@@ -209,7 +215,7 @@
 				<t>
 					A route server client SHOULD use <xref target="RFC5880">BFD</xref> (or other means beyond the
 					scope of this document) to track forwarding plane connectivity
-					to each next hop depicted in the Adj-NHIB-Out.
+					to each next hop in its NHIB as received from the RS's Adj-NHIB-Out.
 				</t>
 
 			</section>
@@ -218,7 +224,7 @@
 				<t>
 					For each next hop in the NHIB received from the route server (called Adj-NHIB-In),
 					the client router SHOULD use some means to confirm that data plane
-					connectivity exists to that next hop.
+					connectivity exists to that next hop.  Here we assume BFD.
 				</t>
 
 				<t>
@@ -229,13 +235,9 @@
 				</t>
 				
 				<t>	
-					For each next hop in the
-					Adj-NHIB-In received from the route server, the
-					client router SHOULD evaluate the next hop's compatibility with this proposal.
-					If the next hop supports this proposed mechanism, the client router SHOULD
-					setup a BFD session to it if one is not already
-					available and track the
-					reachability of this next hop.
+					For each next hop in the Adj-NHIB-In received from the route server,
+					the client router SHOULD attempt to establish a BFD session if one is
+					not already established, and track the reachability of this next hop.
 				</t>
 
 				<t>
@@ -243,10 +245,16 @@
 					Similarly, when that nexthop is determined to no longer be reachable, the entry should be removed from the client router's Adj-NHIB-Out.
 					This may also be done as a result of policy even if connectivity exists.
 				</t>
+
+				<t>
+					If the client can not establish a BFD session with an entry in its
+					NHIB, the next hop is put it in the Adj-NHIB-Out for backward
+					compatibility.
+				</t>
 				
 				<t>
 					If the test of connectivity between one client router and another client router
-					has failed, the client router that detected this failure should perform the
+					fails, the client router detecting this failure should perform the
 					connectivity test for a configurable amount of time, preferably 24 hours.
 					If during this time no connectivity can be restored no more testing is performed
 					until manually changed or the client router is rebooted.
@@ -261,8 +269,8 @@
 				information of next hops in the client's NHIB table accordingly. 
 				Furthermore, the route server SHOULD use reachability information from the NHIB as
 				input to its own decision process when computing the Adj-RIB-Out for
-				this peer.
-				This peer-dependent Adj-RIB-Out is then advertised to this peer. In
+				this client.
+				This client-dependent Adj-RIB-Out is then advertised to this client. In
 				particular, the route server MUST
 				exclude any routes whose next hops the client has declared to be
 				not reachable.
@@ -281,12 +289,13 @@
 			<t>
 				<list style="symbols">
 					<t>
-						The next-hops for BGP routes received from the
+						The set of next-hops for BGP routes received from the
 						BGP speaker, the Adj-NHIB-In.
 					</t>
 					<t>
-						The next-hops the BGP speaker is advertising existence, and potentially
-						connectivity to, the Adj-NHIB-Out.
+						The set of next-hops the BGP speaker is advertising as
+						reachable, i.e., has potential connectivity to, the
+						Adj-NHIB-Out.
 					</t>
 				</list>
 			</t>
@@ -313,7 +322,7 @@
 				<t>
 					If a NHIB entry is received from a BGP speaker and that entry is not part of the
 					sub-network for that BGP session, that NLRI MUST BE ignored.  This prevents
-					erroneous BFD peering session from being provisioned outside of the IXP
+					erroneous BFD peering session being provisioned outside of the IXP
 					network.
 				</t>
 			</section>
@@ -372,9 +381,14 @@
 				</t>
 				<t>
 					If no existing BFD session exists to this nexthop, a BFD session is provisioned
-					to that IP address and the Adj-NHIB-In Reachable state is set to Unknown.  Since
+					to that IP address and the Adj-NHIB-In (In?) Reachable state is set to Unknown.  Since
 					this session requires the remote BFD session to also be provisioned, it may stay
 					in the Down/AdminDown state for a period of time.
+				</t>
+				<t>
+					If the client can not establish a BFD session with an entry in its
+					NHIB, the next hop is put it in the Adj-NHIB-Out as Reachable for backward
+					compatibility.
 				</t>
 				<t>
 					Once the BFD session moves to the Up state, the Adj-NHIB-In Reachable state is
@@ -430,8 +444,8 @@
 
 					<list style="symbols">
 						<t>The BGP next hops received from those clients' BGP routes.</t>
-						<t>The Adj-NHIB-Out state from each client representing next hops that
-						the clients have verified connectivity to.</t>
+						<t>The Adj-NHIB-Out state from each client representing next
+						hops to which the clients believe they have connectivity.</t>
 					</list>
 				</t>
 				<t>
@@ -458,10 +472,10 @@
 					entry:
 					
 					<list style="symbols">
-						<t>When an entry is present, it means that the route server client has
+						<t>When an NHIB entry is present, it means that the route server client has
 						noted the BGP next hop from the route server and has validated
 						connectivity to it.  Such an entry has the Received state of Active.</t>
-						<t>When an entry was previously present, it means that the route server
+						<t>When an entry is withdrawn but was previously present, it means that the route server
 						client previously had validated connectivity to that next hop and NO
 						LONGER has connectivity to it.  Such an entry has the Received state of
 						Cached. The route server may choose to adjust
@@ -495,9 +509,9 @@
 			</t>
 
 			<t>
-				Changes in nexthop reachability via these mechanisms should receive some amount of
-				consideration toward avoiding unnecessary route flapping.  Similar mechanisms exist in
-				IGP implementations and should be applied to this scenario.
+				Changes in nexthop reachability via the above should apply mechanisms to
+				avoid unnecessary route flapping.  Such mechanisms exist in IGP
+				implementations which should be applied to this scenario.
 			</t>
 		</section>
 		
@@ -513,20 +527,20 @@
 					achieved is outside the scope of this document).
 					The ttl/hop limit values as described in
 					<xref target="RFC5881">section 5</xref>
-					MUST be obeyed in order to secure BFD sessions from packets
+					MUST be obeyed in order to shield BFD sessions against packets
 					coming from outside the IXP.
 				</t>
 				
 				<t>
-					There is interdependence between the functionality described in
+					There is interdependence between the functions described in
 					this document and BFD from an administrative point of view.
 					To streamline behaviour of different implementations the following
-					is RECOMMENDED:
+					are RECOMMENDED:
 					<list style='symbols'>
 						<t>If BFD is administratively shut down by the administrator of
-						a client router then the functionality described in this document
+						a client router then the functions described in this document
 						MUST also be administratively shut down.</t>
-						<t>If the administrator enables the functionality described in
+						<t>If the administrator enables the functions described in
 						this document on a client router then BFD MUST be automatically
 						enabled.</t>
 					</list>
@@ -535,7 +549,7 @@
 				<t>
 					The following values of the BFD configuration of client routers
 					(see <xref target="RFC5880">section 6.8.1</xref>) are RECOMMENDED in
-					order to allow a fast detection of lost data plane connectivity:
+					order to allow fast detection of lost data plane connectivity:
 					<list style='symbols'>
 						<t>DesiredMinTxInterval: 1,000,000 (microseconds)</t>
 						<t>RequiredMinRxInterval: 1,000,000 (microseconds)</t>
@@ -552,7 +566,7 @@
 				</t>
 
 				<t>
-					The configuration values above are selected in order to handle brief
+					The configuration values above were chosen to accept brief
 					interruptions in the data plane.  Otherwise, if a BFD session detects a brief
 					data plane interruption to a particular client router, it will signal to the
 					route server that it should remove routes from this client router and shortly
@@ -566,13 +580,13 @@
 					that BFD detects data plane interruptions faster than the BGP advertisement
 					time, a data plane connectivity flap could be detected by BFD but the route
 					server is not informed about it because BGP is not able to transport this
-					information fast enough.
+					information quickly enough.
 				</t>
 
 				<t>
-					As discussed, finding good configuration values is hard so a client router
-					administrator MAY select better suited values depending on the special needs of
-					the particular deployment.
+					As discussed, finding good configuration values is hard, so a client router
+					administrator MAY select more appropriate values to meet the special needs of
+					a particular deployment.
 				</t>
 
             	<!-- BFD flapping handling meachanism -->
@@ -615,18 +629,20 @@
 				SAFI.  Since this state is per-client, if a route server client is able to inject
 				Rs-Reachable routes for another route server's BGP session to a client, it can cause the
 				route server to select different forwarding than otherwise expected.  This issue may be
-				mitigated using transport security on its session to route server clients.  See <xref
+				mitigated using transport security on its BGP session to route server clients.  See <xref
 				target="RFC4272"/>.
 			</t>
 			<t>
-				In the event that route server clients provision the RS-Reachable SAFI amongst
-				themselves, this is an error but will have no inappropriate impacts on forwarding.
-				It is normally incorrect provisioning that an IXP client has a BGP session with
-				another IXP client, Should they negotiate the RS-Reachable SAFI and send RS-Reachable
-				routes, this only serves to signal that BGP Speaker, when not operating as a route
-				server, to attempt to set verify connectivity with the hosts in the received NLRI.
-				While this may potentially request a large number of sessions, the default BFD timers
-				prevent excess packets from being sent from inappropriately provisioned sessions.
+				Should route server clients provision the RS-Reachable SAFI amongst
+				themselves, it would be an error but would have no undesired impact on
+				forwarding.  It is incorrect provisioning for an IXP client which is using a
+				Route Server to have a BGP session with another IXP client.  Should they
+				negotiate the RS-Reachable SAFI and send RS-Reachable routes, this only
+				serves to signal that BGP Speaker, when not operating as a route server, to
+				attempt to set verify connectivity with the hosts in the received NLRI.
+				While this may potentially request a large number of sessions, the default
+				BFD timers prevent excess packets from being sent from inappropriately
+				provisioned sessions.
 			</t>
 			<t>
 				The reachability tests between route server clients themselves may be a target for
