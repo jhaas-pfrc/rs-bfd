@@ -13,7 +13,7 @@
 
 <rfc category="std" docName="draft-ietf-idr-rs-bfd-01">
 	<front>
-		<title>Making Route Servers Aware of Data Link Failures at IXPs</title>
+		<title>Making Route Servers Aware of IXP Link Failures</title>
 
 		<author fullname="Randy Bush" initials="R." surname="Bush">
 			<organization>Internet Initiative Japan</organization>
@@ -212,7 +212,34 @@
 					per-client Next Hop Information Base (NHIB). BGP Link-State is used to transfer the
 					NHIBs from the route server to route server clients.
 				</t>
-
+<figure>
+  <artwork>
++--------------------------------------------------------+
+|                     +------------+                     |
+|                     |            |                     |
+|          .---------->    NHIB    |----------.          |
+|          |          |            |          |          |
+|          |          +------------+          |          |
+|   +------+-----+                      +-----v------+   |
+|   |Adj-NHIB-In |                      |Adj-NHIB-Out|   |
+|   +------^-----+     Route Server     +-----+------+   |
++----------|----------------------------------|----------+
+           |                                  |           
+           |                                  |           
++----------|----------------------------------|----------+
+|   +------+-----+       RS Client      +-----v------+   |
+|   |Adj-NHIB-Out|                      |Adj-NHIB-In |   |
+|   +------^-----+                      +-----+------+   |
+|          |          +------------+          |          |
+|          |          |            |          |          |
+|          `----------+    NHIB    <----------'          |
+|                     |            |                     |
+|                     +------------+                     |
++--------------------------------------------------------+           
+           Fig 1. Route Server, RS Client,
+            and NHIBs with In/Out Queues
+  </artwork>
+</figure>
 				<t>
 					At the route server, the NHIB for each client is populated with the next hops from its Loc-RIB.
 					If the BGP capabilities learned during BGP session setup identify a next hop as compatible with
