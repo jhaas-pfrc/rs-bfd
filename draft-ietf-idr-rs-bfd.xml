@@ -212,20 +212,20 @@
                                         per-client Next Hop Information Base (NHIB). BGP Link-State is used to transfer the
                                         NHIBs from the route server to route server clients.
                                 </t>
-<figure>
+<figure title="Route Server, RS Client, and NHIBs with In/Out Queues" anchor="fig1">
   <artwork>
 +--------------------------------------------------------+
 |                     +------------+                     |
-|                     |            |                     |
-|          .---------->    NHIB    |----------.          |
-|          |          |            |          |          |
+|                     |    Per-    |                     |
+|          .---------->   Client   |----------.          |
+|          |          |    NHIB    |          |          |
 |          |          +------------+          |          |
 |   +------+-----+                      +-----v------+   |
 |   |Adj-NHIB-In |                      |Adj-NHIB-Out|   |
 |   +------^-----+     Route Server     +-----+------+   |
 +----------|----------------------------------|----------+
-           |                                  |           
-           |                                  |           
+           |                                  |
+           |                                  |
 +----------|----------------------------------|----------+
 |   +------+-----+       RS Client      +-----v------+   |
 |   |Adj-NHIB-Out|                      |Adj-NHIB-In |   |
@@ -235,15 +235,13 @@
 |          `----------+    NHIB    &lt;----------'          |
 |                     |            |                     |
 |                     +------------+                     |
-+--------------------------------------------------------+           
-           Fig 1. Route Server, RS Client,
-            and NHIBs with In/Out Queues
++--------------------------------------------------------+
   </artwork>
 </figure>
                                 <t>
                                         At the route server, the NHIB for each client is populated with the next hops from its Loc-RIB.
                                         If the BGP capabilities learned during BGP session setup identify a next hop as compatible with
-                                        this proposal, this is reflected in the NHIB. Initially, it is assumed that the 
+                                        this proposal, this is reflected in the NHIB. Initially, it is assumed that the
                                         client router is able to reach its next hops which is stored in the NHIB.
                                 </t>
                                 <t>
@@ -359,7 +357,7 @@
 			<t>
 				As discussed above, a client router will advertise its Adj-NHIB-Out
 				to the route server. The route server SHOULD update the reachability
-				information of next hops in the client's NHIB table accordingly. 
+				information of next hops in the client's NHIB table accordingly.
 				Furthermore, the route server SHOULD use reachability information from the NHIB as
 				input to its own decision process when computing the Adj-RIB-Out for
 				this peer.
@@ -425,7 +423,7 @@
 		<section anchor="routeselectionprocess" title="Utilizing Next Hop Unreachability Information at Client Routers">
 
 			<t>
-				A client router detecting an unreachable next hop signals this information 
+				A client router detecting an unreachable next hop signals this information
 				to the route server as described above.
 				Also, it treats the routes as unresolvable as per
 				<xref target="RFC4271">section 9.1.2.1</xref> and proceeds with route selection as normal.
@@ -559,7 +557,7 @@
 		<?rfc include="reference.I-D.ietf-idr-ls-distribution"?>
 		</references>
 
-		<!--- <references title="Informative References"> <?rfc include="reference.I-D.ietf-sidr-bgpsec-protocol"?> 
+		<!--- <references title="Informative References"> <?rfc include="reference.I-D.ietf-sidr-bgpsec-protocol"?>
 			</references> -->
 
 	</back>
