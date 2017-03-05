@@ -200,18 +200,18 @@
 					In effect, this requirement amounts to knowing the BGP next hops the
 					route server is aware of for the particular per-client Loc-RIB
 					(see <xref target="I-D.ietf-idr-ix-bgp-route-server">section 2.3.2.1.</xref>).
-					<!-- in its Adj-RIBs-In. -->
-					<!-- Fortunately, <xref target="I-D.ietf-idr-bgp-nh-cost" />
-					defines a construct that contains exactly this data, the
-					"Next-Hop Information Base", or NHIB, as well as procedures for a
-					BGP speaker to communicate its NHIB to its peer. Thus, the problem
-					can be solved by the route server advertising its NHIB to its
-					client router, following those procedures. -->
-					We introduce a new table for each client to store known next hops, their compatibility with this proposed solution
-					and their learned reachability. We call these tables
-					per-client Next Hop Information Base (NHIB). BGP Link-State is used to transfer the
-					NHIBs from the route server to route server clients.
-				</t>
+                                        <!-- in its Adj-RIBs-In. -->
+                                        <!-- Fortunately, <xref target="I-D.ietf-idr-bgp-nh-cost" />
+                                        defines a construct that contains exactly this data, the
+                                        "Next-Hop Information Base", or NHIB, as well as procedures for a
+                                        BGP speaker to communicate its NHIB to its peer. Thus, the problem
+                                        can be solved by the route server advertising its NHIB to its
+                                        client router, following those procedures. -->
+                                        We introduce a new table for each client to store known next hops, their compatibility with this proposed solution
+                                        and their learned reachability. We call these tables
+                                        per-client Next Hop Information Base (NHIB). BGP Link-State is used to transfer the
+                                        NHIBs from the route server to route server clients.
+                                </t>
 <figure>
   <artwork>
 +--------------------------------------------------------+
@@ -232,7 +232,7 @@
 |   +------^-----+                      +-----+------+   |
 |          |          +------------+          |          |
 |          |          |            |          |          |
-|          `----------+    NHIB    <----------'          |
+|          `----------+    NHIB    &lt;----------'          |
 |                     |            |                     |
 |                     +------------+                     |
 +--------------------------------------------------------+           
@@ -240,16 +240,16 @@
             and NHIBs with In/Out Queues
   </artwork>
 </figure>
-				<t>
-					At the route server, the NHIB for each client is populated with the next hops from its Loc-RIB.
-					If the BGP capabilities learned during BGP session setup identify a next hop as compatible with
-					this proposal, this is reflected in the NHIB. Initially, it is assumed that the 
-					client router is able to reach its next hops which is stored in the NHIB.
-				</t>
-				<t>
-					If a next hop is added to the NHIB for a particular client, a route SHOULD be added to the router server's Adj-NHIB-Out.
-					This route contains a BGP Link-State SAFI and models the next hop as node
-					(see <xref target="I-D.ietf-idr-ls-distribution">section 3.2.1</xref>)
+                                <t>
+                                        At the route server, the NHIB for each client is populated with the next hops from its Loc-RIB.
+                                        If the BGP capabilities learned during BGP session setup identify a next hop as compatible with
+                                        this proposal, this is reflected in the NHIB. Initially, it is assumed that the 
+                                        client router is able to reach its next hops which is stored in the NHIB.
+                                </t>
+                                <t>
+                                        If a next hop is added to the NHIB for a particular client, a route SHOULD be added to the router server's Adj-NHIB-Out.
+                                        This route contains a BGP Link-State SAFI and models the next hop as node
+                                        (see <xref target="I-D.ietf-idr-ls-distribution">section 3.2.1</xref>)
 					and the connectivity between the route server and the next hop as link
 					(see <xref target="I-D.ietf-idr-ls-distribution">section 3.2.2</xref>). If a next hop is removed from a
 					NHIB, the corresponding route in the Adj-NHIB-Out SHOULD be removed.
