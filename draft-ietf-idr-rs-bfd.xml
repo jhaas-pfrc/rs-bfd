@@ -202,6 +202,34 @@
 					communicated to the Route Server using RS-Reachable routes.
 				</t>
 
+<figure title="Route Server, RS Client, and NHIBs with In/Out Queues" anchor="fig1" align="center">
+   <artwork><![CDATA[
++--------------------------------------------------------+
+|                     +------------+                     |
+|                     |    Per-    |                     |
+|          .---------->   Client   |----------.          |
+|          |          |    NHIB    |          |          |
+|          |          +------------+          |          |
+|   +------+-----+                      +-----v------+   |
+|   |Adj-NHIB-In |                      |Adj-NHIB-Out|   |
+|   +------^-----+     Route Server     +-----+------+   |
++----------|----------------------------------|----------+
+           |                                  |           
+           |                                  |           
+           |                                  |
+           |                                  |
++----------|----------------------------------|----------+
+|   +------+-----+       RS Client      +-----v------+   |
+|   |Adj-NHIB-Out|                      |Adj-NHIB-In |   |
+|   +------^-----+                      +-----+------+   |
+|          |          +------------+          |          |
+|          |          |            |          |          |
+|          `----------+    NHIB    <----------'          |
+|                     |            |                     |
+|                     +------------+                     |
++--------------------------------------------------------+
+   ]]></artwork>
+ </figure>
 				<t>
 					The NHIB is not large; the set of routers in the ASs the client has
 					asked the RS to maintain in its view.
@@ -209,7 +237,11 @@
 
 				<t>
 					At the route server, the Adj-NHIB-Out for each client is populated with the next
-					hops from the Adj-Ribs-In for the route server view used for that client.
+					hops from its Loc-RIB.  If the BGP capabilities learned during BGP session setup
+					identify a next hop as compatible with this proposal, this is reflected in the
+					NHIB. Initially, it is assumed that the client router is able to reach its next
+					hops which is stored in the NHIB.  If a next hop is added to the NHIB for a
+					particular client, a route SHOULD be added to the router server's Adj-NHIB-Out.
 				</t>
 
 				<t>
