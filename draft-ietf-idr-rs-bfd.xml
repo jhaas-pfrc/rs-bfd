@@ -237,12 +237,6 @@
 					</t>
 				</list>
 			</t>
-			<!-- XXX discussion point: I (jgs) started with "req(uest)" and "resp(onse)"
-			 but switched to "ask" and "tell" because "response" implies you only tell
-			 the server in response to a query, but I thought it might be a good idea to
-			 leave the door open to a client provided unsolicited information. The term
-			 "tell" is intednded to suggest I might choose to tell you something even if 
-			 you didn't ask. -->
 			 
 <figure title="Route Server, RS Client, and Reachability Ask and Tell
 databases with In/Out Queues" align="center">
@@ -275,11 +269,6 @@ databases with In/Out Queues" align="center">
    ]]></artwork>
  </figure>
  
- <!-- XXX discussion: the figure is not quite accurate since the
-  ReachAsk-In doesn't actually drive the LocReach. Actually, 
-  ReachTell-Out is a function of both ReachAsk-In and LocReach. 
-  Not sure how or if to diagram that, though.   -->
-
 			<t>
 				In outline, the route server requests its client to track
 				connectivity for all the potential next hops the RS might send
@@ -323,7 +312,7 @@ databases with In/Out Queues" align="center">
 						<t>
 							The set of addresses of this client's <xref
 							target="definitions">indirect peers</xref>.
-							(Discussion: This functionality ensures that BFD
+							<!--(Discussion: This functionality ensures that BFD
 							sessions will already be provisioned when needed.
 							More importantly, it ensures that both ends of the
 							BFD session will be provisioned, even in the case
@@ -336,20 +325,23 @@ databases with In/Out Queues" align="center">
 							client B a ReachAsk for NH A. We don't have to
 							drive it from configuration. Maybe it's good to do
 							it that way anyway? In any case, probably delete
-							the "discussion" parenthetical?)
+							the "discussion" parenthetical?)-->
 						</t>
 						<t>
 							The RS MAY also add other entries, for example
 							under configuration control.
 						</t>
-						<t>
+						<!--<t>
 							XXX discussion question: do we do this for
 							all indirect peers, or just ones that have 
 							advertised support for NH-Reach? I think all,
 							after all, might not the indirect peer have
 							manually provisioned BFD? A similar question
 							(and answer) applies for gleaned next hops.
-						</t>
+						</t>-->
+						<!--XXX for that matter, is there some advantage to
+						telling a client "these other next hops have not advertised
+						support"? Or just "these are the next hops"? -->
 					</list>
 				</t>
 				
@@ -421,16 +413,16 @@ databases with In/Out Queues" align="center">
 					determined:
 
 					<list style="symbols">
-						<t>Reachable next hops are considered resolvable.</t>
+						<t>Up next hops are considered resolvable.</t>
 						<t>Unknown next hops MAY be considered resolvable.
 						They MAY be considered less preferable for
 						selection.</t>
-						<t>Unreachable next hops MUST NOT be considered 
+						<t>Down next hops MUST NOT be considered 
 						resolvable.</t>
 						<t>If a given next hop is not present in the NHIB, but
 						is present in ReachAsk-Out, either the client has not
 						responded yet (a transient condition) or an error
-						exists. Similar to Unreachable next hops, such routes
+						exists. Similar to Down next hops, such routes
 						MAY be considered resolvable; they MAY be considered
 						less preferable.</t>
 					</list>
@@ -645,7 +637,7 @@ databases with In/Out Queues" align="center">
 				<t>
 					ReachAsk and ReachTell entries MUST NOT be propagated from
 					one BGP peering session to another; the routes are not
-					transitive.  To help enforce this expected behavior, such
+					transitive.  <!-- To help enforce this expected behavior, such
 					routes MUST carry the NO_ADVERTISE community <xref
 					target="RFC1997"/>.  NH-Reach routes not carrying this
 					community MUST be handled using the "treat-as-withdraw"
@@ -653,9 +645,9 @@ databases with In/Out Queues" align="center">
 					(XXX I'm not sure this belt-and-braces is really needed,
 					but I don't have strong feelings about it so have left it
 					in, in case someone else wants to stand up for it. If 
-					nobody advocates for it, I'll plan to cut it out.)
+					nobody advocates for it, I'll plan to cut it out.)-->
 				</t>
-				<t>
+			<!--	<t>
 					If a ReachAsk entry is received from a BGP speaker and
 					that entry is not part of the sub-network for that BGP
 					session, that NLRI SHOULD be ignored unless the feature is
@@ -668,7 +660,7 @@ databases with In/Out Queues" align="center">
 					received and ignored, but instants later an interface is
 					configured for that subnetwork such that the entry wouldn't 
 					have been ignored. Do we rewind history and get it back?)
-				</t>
+				</t>-->
 			</section>
 <!--
 			<section anchor="indirect_peer" title="Specific Procedures for Route Server Clients">
@@ -742,14 +734,14 @@ databases with In/Out Queues" align="center">
 					State may take on the following values:
 					<list style="symbols">
 						<t>0: Unknown.</t>
-						<t>1: Reachable.</t>
-						<t>2: Unreachable.</t>
+						<t>1: Up.</t>
+						<t>2: Down.</t>
 					</list>
 					The values 3-65535 are reserved. If a community with a
 					value in this range is received then it MUST be treated as
-					though the value had been 2, Unreachable. (XXX Unknown is
+					though the value had been 0, Unknown.<!--(XXX Unknown is
 					another option. So is treat-as-withdraw but that amounts
-					to Unknown the way the spec is currently written.)
+					to Unknown the way the spec is currently written.)-->
 				</t>
 				<t>
 					The NH-Reach State Community MUST be sent
@@ -774,7 +766,7 @@ databases with In/Out Queues" align="center">
 				<t>
 					If no existing BFD session exists to this nexthop, a BFD
 					session is provisioned to that IP address and the LocReach
-					<xref target="state_comm">Reachable state</xref> is set to
+					<xref target="state_comm">Up state</xref> is set to
 					Unknown.  Since this session requires the remote BFD
 					session to also be provisioned, it may stay in the
 					Down/AdminDown state for a period of time.
@@ -895,12 +887,12 @@ databases with In/Out Queues" align="center">
 					MUST be obeyed in order to shield BFD sessions against packets
 					coming from outside the IXP.
 				</t>
-				<t>XXX I assume the preceding paragraph means everyone at the IX 
+				<!--<t>XXX I assume the preceding paragraph means everyone at the IX 
 				has to configure their router with all these parameters? Would it
 				be reasonable for the route server to supply the parameters instead?
 				Do the participants have to agree? (I'm sorry, my BFD is very rusty.)
 				(Obviously they have to agree if keying is used, but for the other
-				parameters.)</t>
+				parameters.)</t>-->
 				
 				<t>
 					There is interdependence between the functions described in
@@ -910,7 +902,7 @@ databases with In/Out Queues" align="center">
 					<list style='symbols'>
 						<t>If BFD is administratively shut down by the administrator of
 						a client router then the functions described in this document
-						MUST also be administratively shut down. (XXX discussion: 
+						MUST also be administratively shut down. <!--(XXX discussion: 
 						what does this mean exactly? Must we reset the BGP session because
 						we have to remove the SAFI? If so, why do we have that language
 						that talks about advertising the routes with the bit clear to 
@@ -918,14 +910,14 @@ databases with In/Out Queues" align="center">
 						we agree what should happen here, probably need to elaborate 
 						this clause. Come to think of it, I assume what is really meant
 						here is "if you can't do OAM any more you have to remove the SAFI".
-						I guess?)</t>
+						I guess?)--></t>
 						<t>If the administrator enables the functions described in
 						this document on a client router then BFD MUST be automatically
-						enabled. (XXX is there scope to say that BFD need only be enabled
+						enabled. <!--(XXX is there scope to say that BFD need only be enabled
 						towards the routers requested in ReachAsk? Also, if we are going 
 						to "automatically enable" BFD I suppose either the configuration
 						stanza that enables NH-Reach also has mandatory parameters for the 
-						BFD params, or they just default to what's specced here, or...?)</t>
+						BFD params, or they just default to what's specced here, or...?)--></t>
 					</list>
 				</t>
 				
@@ -972,7 +964,7 @@ so I won't argue if some or all is re-added.
 				</t>
 -->
 				<t>
-					<!-- As discussed, f-->Finding good configuration values is hard, so a client router
+					<!-- As discussed, finding good configuration values is hard, so a-->A client router
 					administrator MAY select more appropriate values to meet the special needs of
 					a particular deployment.
 				</t>
@@ -1037,21 +1029,30 @@ Unknown and missing NH are considered eligible for selection.
 				<xref target="RFC4272"/>.
 			</t>
 			<t>
-				Should route server clients provision the NH-Reach SAFI amongst
+				<!-- Should route server clients provision the NH-Reach SAFI amongst
 				themselves, it would be an error but would have no undesired impact on
 				forwarding.  (XXX would it really be an error, is it necessary to say this?
 				it seems to me that although we have currently written this in terms of a 
 				route server and its clients, it really could apply in any case where
 				third-party next hops are in use. In any case since it's a no-op, do we 
-				really need to say it in this section?)  It is incorrect provisioning for an IXP client which is using a
-				Route Server to have a BGP session with another IXP client. (XXX really? why?) Should they
+				really need to say it in this section?)--><!--  It is incorrect provisioning for an IXP client which is using a
+				Route Server to have a BGP session with another IXP client. (XXX really? why?)--><!-- Should they
 				negotiate the NH-Reach SAFI and send NH-Reach routes, this only
 				serves to signal that BGP Speaker, when not operating as a route server, to
 				attempt to set verify connectivity with the hosts in the received NLRI.
 				While this may potentially request a large number of sessions, the default
 				BFD timers prevent excess packets from being sent from inappropriately
 				provisioned sessions. (XXX ok I do see that lots of BFD sessions could be a concern that needs to be
-				addressed in this section)
+				addressed in this section)-->
+				The NH-Reach SAFI enables the server to trigger creation of a
+				BFD session on its client. A malicious or misbehaving server
+				could trigger an unreasonable number of sessions, a potential
+				resource exhaustion attack. The sedate default timers proposed
+				in <xref target="recommendations"/> mitigate this; they also
+				mitigate concerns about use of the client as a source of
+				packets in a flooding attack. An implementation MAY also
+				impose limits on the number of BFD sessions it will create at
+				the request of the server.
 			</t>
 			<t>
 				The reachability tests between route server clients themselves may be a target for
