@@ -9,7 +9,6 @@
 <!ENTITY RFC5881 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5881.xml">
 <!ENTITY RFC7606 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7606.xml">
 <!ENTITY RFC7947 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7947.xml">
-<!--ENTITY NH-COST SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml3/reference.I-D.ietf-idr-bgp-nh-cost.xml"-->
 ]>
 <?rfc comments="yes"?>
 <?rfc compact="yes"?>
@@ -82,7 +81,7 @@
 			</address>
 		</author>
 		
-		<author fullname="Thomas King" initials="T." surname="King" role="editor">
+		<author fullname="Thomas King" initials="T." surname="King">
 			<organization>DE-CIX Management GmbH</organization>
 			<address>
 				<postal>
@@ -312,37 +311,23 @@ databases with In/Out Queues" align="center">
 						<t>
 							The set of addresses of this client's <xref
 							target="definitions">indirect peers</xref>.
-							<!--(Discussion: This functionality ensures that BFD
-							sessions will already be provisioned when needed.
-							More importantly, it ensures that both ends of the
-							BFD session will be provisioned, even in the case
-							where routes flow only in one direction between a
-							pair of clients.) (XXX I can think of various other
-							ways to do this, e.g. we could do it all with NH
-							gleaning from the per-client RIB, but if we notice
-							we are sending client A a ReachAsk for NH B, then
-							at that point we go make sure we are sending
-							client B a ReachAsk for NH A. We don't have to
-							drive it from configuration. Maybe it's good to do
-							it that way anyway? In any case, probably delete
-							the "discussion" parenthetical?)-->
 						</t>
 						<t>
 							The RS MAY also add other entries, for example
 							under configuration control.
 						</t>
-						<!--<t>
-							XXX discussion question: do we do this for
-							all indirect peers, or just ones that have 
-							advertised support for NH-Reach? I think all,
-							after all, might not the indirect peer have
-							manually provisioned BFD? A similar question
-							(and answer) applies for gleaned next hops.
-						</t>-->
-						<!--XXX for that matter, is there some advantage to
-						telling a client "these other next hops have not advertised
-						support"? Or just "these are the next hops"? -->
 					</list>
+					
+					We note that under most circumstances, the former (Loc-RIB
+					next hops) set will be a subset of the latter (indirect
+					peers) set. For this not to be the case, a client would have
+					to have sent a "third party" next hop <xref target="RFC4271"/>
+					to the server. To cover such a case, an implementation MAY 
+					note any such next hops, and include them in its list of
+					indirect peers. (This implies that if a third party next hop
+					for client C is conveyed to client A, not only will C be 
+					placed in A's ReachAsk database, but A will be placed in C's
+					ReachAsk database.)
 				</t>
 				
 				<t>
@@ -358,8 +343,7 @@ databases with In/Out Queues" align="center">
 					to each host address depicted in the ReachAsk database. It
 					MAY also track connectivity to other addresses. This
 					document discusses the use of BFD for this purpose,
-					detailed in <xref target="client_procedures"/>; other 
-					means are possible as well. 
+					detailed in <xref target="client_procedures"/>. 
 				</t>
 				
 				<t>
@@ -430,146 +414,7 @@ databases with In/Out Queues" align="center">
 			</section>
 		</section>
 		
-<!--
-		<section anchor="operation_old" title="Operation (old)">
-			<t>
-				Below, we detail procedures where a route server tells its
-				client router about other client nexthops by sending it
-				ReachAsk routes and the client router verifies connectivity to
-				those other client routers (using BFD or otherwise) and
-				communicates its findings back to the RS using ReachTell
-				routes. The RS uses the received ReachTell routes as input to
-				the route selection process it performs on behalf of the
-				client.
-			</t>
-
-			<section anchor="discovery"
-				title="Mutual Discovery of Route Server Client Next Hops">
-				<t>
-					Strictly speaking, a route server client does not need to know of
-					other control-plane clients. For validation purposes, it only needs
-					to know the set of next hops the route server might choose to send to
-					it; i.e., to know all potential forwarding plane relationships.
-				</t>
-
-				<t>
-					This requirement amounts to knowing the BGP next hops the
-					route server is aware of for the particular per-client Loc-RIB
-					(see <xref target="RFC7947">section 2.3.2.1 of</xref>).
-					We introduce a new table for each client to store known next hops, their
-					compatibility with this proposed solution and their learned reachability. We
-					call these tables per-client Next Hop Information Base (NHIB). The NHIB is
-					communicated to the Route Server using ReachTell routes. The NHIB and 
-					associated tables will generally be of modest size; the set of routers
-					in the ASes the client indirectly peers with via the RS.
-				</t>
-
-				<t>
-					At the route server, the ReachAsk-Out for each client is populated with the next
-					hops from its Per-Client-RIB.  ((If the BGP capabilities learned during BGP session setup
-					identify a next hop as compatible with this proposal, this is reflected in the
-					NHIB XXX. Initially, it is assumed that the client router is able to reach its next
-					hops which are stored in the NHIB.))  If a next hop is added to the Per-Client-RIB for a
-					particular client, a route MUST be added to the route server's ReachAsk-Out.
-				</t>
-
-				<t>
-					A route server client SHOULD use <xref
-					target="RFC5880">BFD</xref> (or other means beyond the
-					scope of this document) to track forwarding plane
-					connectivity to each next hop in its ReachAsk-In as
-					received from the RS's ReachAsk-Out, as detailed below.
-				</t>
-
-			</section>
-
-			<section anchor="tracking" title="Tracking Connectivity">
-				<t>
-					For each next hop in its ReachAsk-In, the client router
-					SHOULD use some means to confirm that data plane
-					connectivity exists to that next hop.  Here we assume BFD.
-				</t>
-
-				<t>
-					The client router maintains its own LocReach database in
-					order to keep track of its (potential) next hops and their
-					reachability. LocReach is updated according to the
-					ReachAsk-In and client router's own tests to verify
-					connectivity to next hops.
-				</t>
-				
-				<t>	
-					For each next hop in the ReachAsk-In, the client router
-					SHOULD attempt to establish a BFD session if one is not
-					already established, and track the reachability of this
-					next hop.
-				</t>
-				-->
-<!--XXX
-				<t>
-					For each nexthop that is determined to be reachable, an
-					entry should be added in the client router's Adj-NHIB-Out
-					to be advertised to the route server. Similarly, when that
-					nexthop is determined to no longer be reachable, the entry
-					should be removed from the client router's Adj-NHIB-Out.
-					This may also be done as a result of policy even if
-					connectivity exists.
-				</t>
-
-				<t>
-					If the client cannot establish a BFD session with an entry in its
-					NHIB, the next hop is put in the Adj-NHIB-Out for backward
-					compatibility.
-				</t>
-			-->	
-			<!--
-				<t>
-					If the test of connectivity between one client router and
-					another client router fails, the client router detecting
-					this failure should perform the connectivity test for a
-					configurable amount of time, preferably 24 hours. If
-					during this time no connectivity can be restored no more
-					testing is performed until manually changed or the client
-					router is rebooted.
-				</t>
-			</section>
-		</section>
-		
-		<section anchor="client-advertising" title="Advertising Client Router Connectivity to the Route Server">
-			<t>
-				As discussed above, a client router will advertise the content
-				of its LocReach database to the route server through its
-				ReachTell-Out. The route server SHOULD update the reachability
-				information of next hops in the client's NHIB table
-				accordingly. Furthermore, the route server SHOULD use
-				reachability information from the NHIB as input to its own
-				decision process when computing the Adj-RIB-Out for this
-				client. This client-dependent Adj-RIB-Out is then advertised
-				to this client. In particular, the route server MUST exclude
-				any routes whose next hops the client has declared to be not
-				reachable.
-			</t>
-		</section>
-		-->
-
 		<section anchor="advertising" title="Advertising NH-Reach state in BGP">
-<!--			<t>
-				Two distinct pieces of per-peer state have been identified in the sections above:
-			</t>
-			<t>
-				<list style="symbols">
-					<t>
-						The set of next hops for BGP routes received from the
-						BGP speaker, the Adj-NHIB-In.
-					</t>
-					<t>
-						The set of next hops the BGP speaker is advertising as
-						reachable, i.e., has potential connectivity to, the
-						Adj-NHIB-Out.
-					</t>
-				</list>
-			</t>-->
-
 			<section title="Using the NH-Reach SAFI">
 				<t>
 					A new BGP SAFI, the NH-Reach SAFI, is defined in this
@@ -616,19 +461,31 @@ databases with In/Out Queues" align="center">
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      type     |          next hop (4 or 16 octets)            |
+|T|Reserved |Sta|          next hop (4 or 16 octets)            |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 .             ...  next hop (4 or 16 octets) ...                .
 .                                                               .
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
                                 ]]></artwork></figure>
-                                
+
                 <t><list style="symbols">
-                	<t>The Type field can take the value 0, meaning the
-                	   NLRI is a ReachAsk entry, or 1, meaning it is a
-                	   ReachTell entry. All other values are reserved, NLRI
-                	   with some other value in this field MUST be ignored on
-                	   receipt.</t>
+                	<t>T: Type is a one-bit field that can take the 
+                	   value 0, meaning the NLRI is a ReachAsk entry, or 1, 
+                	   meaning it is a ReachTell entry.</t>
+                	<t>Reserved: These five bits are reserved. They MUST
+                	   be sent as zero and MUST be disregarded on receipt.</t>
+
+                	<t>Sta: State is a two-bit field used to signal the 
+                	   <xref target="locreach">LocReach</xref> state:
+						<list style="symbols">
+							<t>0 or 3: Unknown.</t>
+							<t>1: Up.</t>
+							<t>2: Down.</t>
+						</list>
+						Although either 0 or 3 is to be interpreted as "Unknown",
+						the value 0 MUST be used on transmission. The value 3 MUST
+						be accepted as an alias for 0 on receipt.
+					</t>
                 	<t>The next hop field is an IPv4 or IPv6 host
                 	   route, depending on whether the AFI is IPv4
                 	   or IPv6.</t>
@@ -637,119 +494,21 @@ databases with In/Out Queues" align="center">
 				<t>
 					ReachAsk and ReachTell entries MUST NOT be propagated from
 					one BGP peering session to another; the routes are not
-					transitive.  <!-- To help enforce this expected behavior, such
-					routes MUST carry the NO_ADVERTISE community <xref
-					target="RFC1997"/>.  NH-Reach routes not carrying this
-					community MUST be handled using the "treat-as-withdraw"
-					option specified in <xref target="RFC7606"/> section 2.
-					(XXX I'm not sure this belt-and-braces is really needed,
-					but I don't have strong feelings about it so have left it
-					in, in case someone else wants to stand up for it. If 
-					nobody advocates for it, I'll plan to cut it out.)-->
-				</t>
-			<!--	<t>
-					If a ReachAsk entry is received from a BGP speaker and
-					that entry is not part of the sub-network for that BGP
-					session, that NLRI SHOULD be ignored unless the feature is
-					being used in a multihop context (such use is outside the
-					scope of this document). This prevents erroneous BFD
-					peering sessions being provisioned outside of the IXP
-					network. (XXX I am a little confused about this paragraph,
-					leaving it for further discussion. By the way, apart from
-					other issues, there's the corner case where a entry is 
-					received and ignored, but instants later an interface is
-					configured for that subnetwork such that the entry wouldn't 
-					have been ignored. Do we rewind history and get it back?)
-				</t>-->
-			</section>
-<!--
-			<section anchor="indirect_peer" title="Specific Procedures for Route Server Clients">
-				<t>
-					If a route server is configured such that routes from a
-					given client A might be sent to a given client B, or
-					vice-versa, those two clients are considered to be
-					indirect peers. A route server MUST always place an entry
-					in a client's ReachAsk-Out for any indirect peer of that
-					client. The value to be used for the entry is the
-					configured peering address in question.
+					transitive.  To this end, the <xref
+					target="RFC1997">NO_ADVERTISE community</xref> MUST be
+					transmitted with every NH-Reach route.
 				</t>
 				<t>
-					Discussion: This functionality ensures that BFD sessions
-					will already be provisioned when needed. More importantly,
-					it ensures that both ends of the BFD session will be
-					provisioned, even in the case where routes flow only in
-					one direction between a pair of clients.
-				</t>
-				<t>
-					XXX I can think of various other ways to do this, e.g.
-					we could do it all with NH gleaning from the per-client RIB,
-					but if we notice we are sending client A a ReachAsk for NH
-					B, then at that point we go make sure we are sending client
-					B a ReachAsk for NH A. We don't have to drive it from 
-					configuration. Maybe it's good to do it that way anyway?
-				</t>
-			</section>
-			-->
-			<section anchor="state_comm" title="The NH-Reach State Community">
-<!--                                <figure><artwork><![CDATA[
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|      0x43     | Sub-Type TBD1 |    Reserved (Must be Zero)    |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|               Reserved (Must be Zero)         |     State     |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-                                ]]></artwork></figure>
-
-				<t>
-					The NH-Reach State Extended Community is used to signal
-					the reachability state of the associated NH-Reach NLRI.  A
-					one-octet field is used for this purpose.  The remainder
-					of the extended community is reserved and its contents
-					MUST be set to zero when originated and MUST be ignored
-					upon receipt. 
-					
-					XXX I stubbed this out because I couldn't think of why we
-					need an extcomm instead of a regular one. It's not a big deal,
-					but it seemed fine to just use a regular and save a few
-					bits. If you want to put it back, no worries.
-				</t>-->
-				
-				<t>
-					The NH-Reach State Well-Known Community has value TBD. The
-					low-order bytes of the community encode the reachability
-					state of the associated NH-Reach NLRI:
-				</t>
-				
-                <figure title="NH-Reach State Well-Known Community" 
-                		align="center"><artwork><![CDATA[
- 0                   1                   2                   3
- 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|               TBD             |              State            |
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-                                ]]></artwork></figure>
-				
-				<t>
-					State may take on the following values:
-					<list style="symbols">
-						<t>0: Unknown.</t>
-						<t>1: Up.</t>
-						<t>2: Down.</t>
-					</list>
-					The values 3-65535 are reserved. If a community with a
-					value in this range is received then it MUST be treated as
-					though the value had been 0, Unknown.<!--(XXX Unknown is
-					another option. So is treat-as-withdraw but that amounts
-					to Unknown the way the spec is currently written.)-->
-				</t>
-				<t>
-					The NH-Reach State Community MUST be sent
-					with any ReachTell route. NH-Reach routes not carrying this
-					community MUST be handled using the "treat-as-withdraw"
-					option specified in <xref target="RFC7606"/> section 2.
-					If this community is received with any other route, including
-					a ReachAsk route, it MUST be ignored. 
+					The next hop field is the key for the NH-Reach NLRI type;
+					the information encoded in the top octet is non-key
+					information. It is possible in principle (although
+					unlikely) for two NLRI to be validly present in an UPDATE
+					message with identical next hop fields but different
+					types. However, two NLRI with the same next hop field and
+					different State fields MUST NOT be encoded in the same
+					UPDATE message. If such are encountered, the receiver MUST
+					behave as though the state "Unknown" were received for the
+					next hop in question.
 				</t>
 			</section>
 		</section>
@@ -766,7 +525,7 @@ databases with In/Out Queues" align="center">
 				<t>
 					If no existing BFD session exists to this nexthop, a BFD
 					session is provisioned to that IP address and the LocReach
-					<xref target="state_comm">Up state</xref> is set to
+					<xref target="locreach">Up state</xref> is set to
 					Unknown.  Since this session requires the remote BFD
 					session to also be provisioned, it may stay in the
 					Down/AdminDown state for a period of time.
@@ -778,98 +537,27 @@ databases with In/Out Queues" align="center">
 				</t>
 				<t>
 					Once the BFD session moves to the Up state, the LocReach
-					Reachable state is set to Up.  <!-- This entry is now eligible
-					to be placed in ReachTell-Out table and distributed
-					according to the procedures above.  Additionally, local
-					BGP route selection may be impacted by this state.  See
-					<xref target="routeselectionprocess"/>. -->
+					Reachable state is set to Up.  
 				</t>
 				<t>
 					When the BFD session transitions out of the Up state to
 					the Down state, the LocReach Reachable state is set to
-					Down.  <!-- The corresponding entry MUST be removed from the
-					ReachTell-Out table.  This has the consequence of
-					withdrawing the corresponding NH-Reach route, informing
-					the route server that the next hop is no longer reachable. -->
+					Down.  
 				</t>
 				<t>
 					If the BFD session transitions out of the Up state to the
 					AdminDown state, the LocReach Reachable state is set to
-					Unknown<!-- AdminDown-->.  <!--The corresponding entry is not be removed from
-					the ReachTell-Out table.  Instead, the NH-Reach State
-					Extended Community is added to the route with the R
-					(reachable) bit clear.  -->
+					Unknown.  
 				</t>
-<!--
-				<t>
-					The motivation for this behavior is that AdminDown could imply
-					one of two possible circumstances:
-					
-					<list style="symbols">
-						<t>The local BFD session has been deconfigured and BFD validation is no
-						longer possible.  While the nexthop may still be usable, it is no longer
-						able to be determined using BFD whether that can happen.  Removing the
-						entry from the Adj-NHIB-Out will inform the route server that the next
-						hop is no longer reachable and may adversely impact the route server's
-						view supplied to that route server client.</t>
-						<t>The remote BFD session has been deconfigured with similar impact.</t>
-					</list>
-
-					An implementation of these procedures MUST provide an administrative mechanism
-					to clear such AdminDown entries from the Adj-NHIB-Out table. XXX I guess?
-					But why? As the procedures are now written, this is not distinguishable on the
-					wire from a session where BFD never came up to begin with.
-				</t>
--->
 				<t>
 					When entries are removed from the route server client's
 					ReachAsk-In for a route server peering session, the client
 					MAY delay de-provisioning the BFD peering session.  If the
 					client delays de-provisioning the session, it should
 					remove it if the BFD session transitions to the Down or
-					AdminDown states. <!--The client SHOULD remove the
-					corresponding entry from its LocReach and hence,
-					ReachTell-Out tables regardless of the state of the BFD
-					session.-->
+					AdminDown states. 
 				</t>
 			</section>
-<!--
-			<section title="Route Server Procedures for NH-Reach Changes">
-				<t>
-					A route server creates an entry in its ReachAsk-Out database
-					for each distinct nexthop in the associated Per-Client RIB,
-					and for each <xref target="definitions">indirect peer</xref> 
-					associated with the client in question. (XXX see discussion
-					in that section about whether we really need both of these)
-					It MAY also create entries for other reasons, for example under
-					configuration control.
-				</t>
-				<t>
-					In computing its per-client Loc-RIB, the route server uses
-					the content of the related per-client NHIB:
-					
-					<list style="symbols">
-						<t>If a given next hop is present with state
-						Reachable, it has been validated to be reachable by
-						the client. Routes with such next hops are considered
-						eligible for selection for purposes of <xref
-						target="RFC4271">section 9.1.2.1 of </xref></t>
-						<t>If a given next hop is present with state Unknown,
-						the client is unable to supply information about its
-						reachability state. Routes with such next hops MAY be
-						considered eligible for selection for purposes of
-						<xref target="RFC4271">section 9.1.2.1 of </xref> .
-						They MAY be considered less preferable for
-						selection.</t>
-						<t>If a given next hop is not present, it is
-						considered unreachable by the client. Such routes MUST
-						NOT be considered eligible for selection for purposes
-						of <xref target="RFC4271">section 9.1.2.1 of
-						</xref></t>
-					</list>
-				</t>
-			</section>
-			-->
 		</section>
 		
 		<section anchor="recommendations" title="Recommendations for Using BFD">
@@ -887,12 +575,6 @@ databases with In/Out Queues" align="center">
 					MUST be obeyed in order to shield BFD sessions against packets
 					coming from outside the IXP.
 				</t>
-				<!--<t>XXX I assume the preceding paragraph means everyone at the IX 
-				has to configure their router with all these parameters? Would it
-				be reasonable for the route server to supply the parameters instead?
-				Do the participants have to agree? (I'm sorry, my BFD is very rusty.)
-				(Obviously they have to agree if keying is used, but for the other
-				parameters.)</t>-->
 				
 				<t>
 					There is interdependence between the functions described in
@@ -902,22 +584,10 @@ databases with In/Out Queues" align="center">
 					<list style='symbols'>
 						<t>If BFD is administratively shut down by the administrator of
 						a client router then the functions described in this document
-						MUST also be administratively shut down. <!--(XXX discussion: 
-						what does this mean exactly? Must we reset the BGP session because
-						we have to remove the SAFI? If so, why do we have that language
-						that talks about advertising the routes with the bit clear to 
-						indicate "unknown" state in the AdminDown case? In any case, once
-						we agree what should happen here, probably need to elaborate 
-						this clause. Come to think of it, I assume what is really meant
-						here is "if you can't do OAM any more you have to remove the SAFI".
-						I guess?)--></t>
+						MUST also be administratively shut down. </t>
 						<t>If the administrator enables the functions described in
 						this document on a client router then BFD MUST be automatically
-						enabled. <!--(XXX is there scope to say that BFD need only be enabled
-						towards the routers requested in ReachAsk? Also, if we are going 
-						to "automatically enable" BFD I suppose either the configuration
-						stanza that enables NH-Reach also has mandatory parameters for the 
-						BFD params, or they just default to what's specced here, or...?)--></t>
+						enabled. </t>
 					</list>
 				</t>
 				
@@ -931,67 +601,25 @@ databases with In/Out Queues" align="center">
 						<t>DetectMult: 3</t>
 					</list>
 				</t>
-<!-- 
-XXX I stubbed this out because while interesting it probably doesn't really matter
-that much to the implementor, who's just going to do what you tell them to do. This is
-a matter of taste, some people like to make their specs tutorial (cough OSPF cough)
-so I won't argue if some or all is re-added.
-
 				<t>
-					The configuration values above are a trade-off between fast detection of data
-					plane connectivity and the load client routers must handle keeping up the BFD
-					communication. Selecting smaller DesiredMinTxInterval and RequiredMinRxInterval
-					values generates excessive BFD packets, especially at larger IXPs with many
-					hundreds of client routers. 
+					A client router administrator MAY select more appropriate
+					values to meet the special needs of a particular
+					deployment.
 				</t>
-
-				<t>
-					The configuration values above were chosen to accept brief
-					interruptions in the data plane.  Otherwise, if a BFD session detects a brief
-					data plane interruption to a particular client router, it will signal to the
-					route server that it should remove routes from this client router and shortly
-					thereafter to add the routes again. This is disruptive and computationally
-					expensive on the route server.
-				</t>
-
-				<t>
-					The configuration values above are also partially impacted by BGP advertisement
-					time in reaction to events from BFD. If the configuration values are selected so
-					that BFD detects data plane interruptions faster than the BGP advertisement
-					time, a data plane connectivity flap could be detected by BFD but the route
-					server is not informed about it because BGP is not able to transport this
-					information quickly enough.
-				</t>
--->
-				<t>
-					<!-- As discussed, finding good configuration values is hard, so a-->A client router
-					administrator MAY select more appropriate values to meet the special needs of
-					a particular deployment.
-				</t>
-
-            	<!-- BFD flapping handling meachanism -->
-            	<!-- Comment Jeff: Whether we need to specify that the remote
-            	nexthop reachability mechanism is damped in the spec is an
-            	open question. -->
 		</section>
-		<!--
-XXX I think this is now covered in the main body of the spec, where it says that 
-Unknown and missing NH are considered eligible for selection.
-
-		<section anchor="bootstrapping" title="Bootstrapping">
-			<t>
-				During route server start-up, it does not know anything about connectivity states
-				between client routers. So, the route server assumes optimistically that all
-				client routers are able to reach each other unless told otherwise.
-			</t>
-		</section>
--->
 
 		<section anchor="other" title="Other Considerations">
 			<t>
 				For purposes of routing stability, implementations may wish to apply
 				hysteresis ("holddown") to next hops that have transitioned from
 				reachable to unreachable and back. 
+			</t>
+			<t>
+				Implementations MAY restrict the range of addresses with which they
+				will attempt to form BFD relationships. For example, an implementation
+				might by default only allow BFD relationships with peers that share
+				a subnetwork with the route server. An implementation MAY apply such
+				restrictions by default.
 			</t>
 		</section>
 
@@ -1000,18 +628,6 @@ Unknown and missing NH are considered eligible for selection.
 				IANA is requested to allocate a value from the Subsequent Address Family Identifiers
 				(SAFI) Parameters registry for this proposal.  Its Description in that registry shall
 				be NH-Reach with a Reference of this RFC.
-			</t>
-			<!--
-			<t>
-				IANA is requested to allocate a value from the Non-Transitive Opaque Extended Community
-				Sub-Types registry.  Its Name will be "NH-Reach State Extended Community" with a
-				Reference of this RFC.
-			</t>
-			-->
-			<t>
-				IANA is requested to allocate a value from the Border Gateway
-				Protocol (BGP) Well-known Communities registry.  Its Name will
-				be "The NH-Reach State Community" with a Reference of this RFC.
 			</t>
 		</section>
 
@@ -1029,21 +645,6 @@ Unknown and missing NH are considered eligible for selection.
 				<xref target="RFC4272"/>.
 			</t>
 			<t>
-				<!-- Should route server clients provision the NH-Reach SAFI amongst
-				themselves, it would be an error but would have no undesired impact on
-				forwarding.  (XXX would it really be an error, is it necessary to say this?
-				it seems to me that although we have currently written this in terms of a 
-				route server and its clients, it really could apply in any case where
-				third-party next hops are in use. In any case since it's a no-op, do we 
-				really need to say it in this section?)--><!--  It is incorrect provisioning for an IXP client which is using a
-				Route Server to have a BGP session with another IXP client. (XXX really? why?)--><!-- Should they
-				negotiate the NH-Reach SAFI and send NH-Reach routes, this only
-				serves to signal that BGP Speaker, when not operating as a route server, to
-				attempt to set verify connectivity with the hosts in the received NLRI.
-				While this may potentially request a large number of sessions, the default
-				BFD timers prevent excess packets from being sent from inappropriately
-				provisioned sessions. (XXX ok I do see that lots of BFD sessions could be a concern that needs to be
-				addressed in this section)-->
 				The NH-Reach SAFI enables the server to trigger creation of a
 				BFD session on its client. A malicious or misbehaving server
 				could trigger an unreasonable number of sessions, a potential
@@ -1080,44 +681,11 @@ Unknown and missing NH are considered eligible for selection.
 		&RFC4272;
 		</references>
 
-<!--
-XXX I'm not sure what the purpose of this section is so I've stubbed it out.
-Also, because the parser doesn't like runs of hyphens inside a comment, I've
-replaced the hyphen runs with percent signs, simply because there is no other
-occurrance in the document so it'll be easy enough to restore them with a simple
-search-and-replace if needed.
-
-		<section title="Summary of Adj-NHIB-In state">
-			<t>
-				The Adj-NHIB-In state is maintained per BGP peering session.  It consists of per-peer
-				state and per-peer, per-nexthop state.
-			</t>
-                        <t>
-                                <figure><artwork><![CDATA[
- +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+%%%%%%%%%%%%%%%%%%%%%%%%%%%%+
- | Client Role                       | (Route-Server |            |
- |                                   |  Route-Server-Client       |
- +%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+%%%%%%%%%%%%%%%%%%%%%%%%%%%%+
-             Fig. 1  Per-peer Adj-NHIB-In Table State
-
-
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+
-| NextHop                   | <IPv4 Address | IPv6 Address         |
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+
-| Reachable                 | (Unknown | Up | Down | AdminDown)    |
-+%%%%%%%%%%%%%%%%%%%%%%%%%%%+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%+
-              Fig. 2  Per-peer, per-nexthop  Adj-NHIB-In State
-
-                                ]]></artwork></figure>
-                        </t>
-
-		</section>
--->
-
 		<section title="Summary of Document Changes">
 		    <t>
 		    <list style="hanging" hangIndent="2">
-		    <t hangText="idr-02 to idr-03:">Substantial rewrite.</t>
+		    <t hangText="idr-02 to idr-03:">Substantial rewrite. Introduce NLRI format
+		       that embeds state.</t>
 			<t hangText="idr-01 to idr-02:">Move from BGP-LS to NH-Reach SAFI.
 			   Lots of editorial changes.</t>
 			<t hangText="idr-00 to idr-01:">Add BGP Capability.  Move from NH-Cost to BGP-LS.</t>
