@@ -300,7 +300,7 @@ databases with In/Out Queues" align="center">
 					The route server maintains a ReachAsk database for each
 					client that supports this proposal, that is, for each
 					client that has advertised support for the NH-Reach SAFI.
-					This database is a set comprising the union of:
+					This database is the union of:
 					
 					<list style="symbols">
 						<t>
@@ -575,22 +575,7 @@ databases with In/Out Queues" align="center">
 					MUST be obeyed in order to shield BFD sessions against packets
 					coming from outside the IXP.
 				</t>
-				
-				<t>
-					There is interdependence between the functions described in
-					this document and BFD from an administrative point of view.
-					To streamline behaviour of different implementations the following
-					are RECOMMENDED:
-					<list style='symbols'>
-						<t>If BFD is administratively shut down by the administrator of
-						a client router then the functions described in this document
-						MUST also be administratively shut down. </t>
-						<t>If the administrator enables the functions described in
-						this document on a client router then BFD MUST be automatically
-						enabled. </t>
-					</list>
-				</t>
-				
+								
 				<t>
 					The following values of the BFD configuration of client routers
 					(see <xref target="RFC5880">section 6.8.1</xref>) are RECOMMENDED in
