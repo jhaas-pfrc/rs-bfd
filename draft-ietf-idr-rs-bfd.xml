@@ -1,6 +1,5 @@
 <?xml version="1.0"?>
 <!DOCTYPE rfc SYSTEM "rfc2629.dtd" [
-<!ENTITY RFC1997 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.1997.xml">
 <!ENTITY RFC2119 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.2119.xml">
 <!ENTITY RFC4271 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4271.xml">
 <!ENTITY RFC4272 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4272.xml">
@@ -235,8 +234,6 @@
 					<t>
 					    NHIB: Next Hop Information Base. Stores what is known
 					    about the client's reachability to its next hops.
-					    Content can be derived from ReachTell-In or other
-					    sources, as appropriate.
 					</t>
 				</list>
 			</t>
@@ -291,11 +288,10 @@ databases with In/Out Queues" align="center">
 				Below, we detail procedures where a route server tells its
 				client router about other client nexthops by sending it
 				ReachAsk routes and the client router verifies connectivity to
-				those other client routers (using BFD or otherwise) and
-				communicates its findings back to the RS using ReachTell
-				routes. The RS uses the received ReachTell routes as input to
-				the route selection process it performs on behalf of the
-				client.
+				those other client routers and communicates its findings back
+				to the RS using ReachTell routes. The RS uses the received
+				ReachTell routes as input to the NHIB and hence the route
+				selection process it performs on behalf of the client.
 			</t>
 
 			<section anchor="reachask" title="ReachAsk">
@@ -303,8 +299,8 @@ databases with In/Out Queues" align="center">
 					The route server maintains a ReachAsk database for each
 					client that supports this proposal, that is, for each
 					client that has <xref target="advertising">advertised
-					support</xref> for the NH-Reach SAFI at BGP OPEN.  This
-					database is the union of:
+					support</xref> for the NH-Reach SAFI.  This database is
+					the union of:
 					
 					<list style="symbols">
 						<t>
@@ -323,7 +319,7 @@ databases with In/Out Queues" align="center">
 					</list>
 					
 					We note that under most circumstances, the first (Loc-RIB
-					next hops) set will be a subset of the last (indirect
+					next hops) set will be a subset of the second (indirect
 					peers) set. For this not to be the case, a client would
 					have to have sent a "third party" next hop <xref
 					target="RFC4271"/> to the server. To cover such a case, an
@@ -337,7 +333,7 @@ databases with In/Out Queues" align="center">
 				<t>
 					The contents of the ReachAsk database are communicated to
 					the client using the NLRI format and procedures described
-					<xref target="advertising">below</xref>.
+					in <xref target="advertising"/>.
 				</t>
 			</section>
 			
@@ -345,9 +341,9 @@ databases with In/Out Queues" align="center">
 				<t>
 					The client MUST attempt to track data plane connectivity
 					to each host address depicted in the ReachAsk database. It
-					MAY also track connectivity to other addresses. This
-					document discusses the use of BFD for this purpose,
-					detailed in <xref target="client_procedures"/>. 
+					MAY also track connectivity to other addresses. The use of
+					BFD for this purpose is detailed in <xref
+					target="client_procedures"/>. 
 				</t>
 				
 				<t>
@@ -365,9 +361,9 @@ databases with In/Out Queues" align="center">
 					</list>
 					
 					The LocReach database is used as input for the ReachTell
-					database; it MAY also be used as input to the route
-					resolvability condition (<xref target="RFC4271">section
-					9.1.2.1 of</xref>).
+					database; it MAY also be used as input to the client's
+					route resolvability condition (<xref
+					target="RFC4271">section 9.1.2.1 of</xref>).
 				</t>
 				
 			</section>
@@ -381,7 +377,7 @@ databases with In/Out Queues" align="center">
 				<t>
 					The contents of the ReachTell database are communicated to
 					the server using the NLRI format and procedures described
-					<xref target="advertising">below</xref>.
+					in <xref target="advertising"/>.
 				</t>
 			</section>
 			
@@ -409,7 +405,7 @@ databases with In/Out Queues" align="center">
 						<t>If a given next hop is not present in the NHIB, but
 						is present in ReachAsk-Out, either the client has not
 						responded yet (a transient condition) or an error
-						exists. Similar to Down next hops, such routes
+						exists. Similar to Unknown next hops, such routes
 						MAY be considered resolvable; they MAY be
 						less preferred.</t>
 					</list>
@@ -418,49 +414,48 @@ databases with In/Out Queues" align="center">
 		</section>
 		
 		<section anchor="advertising" title="Advertising NH-Reach state in BGP">
-			<section title="Using the NH-Reach SAFI">
-				<t>
-					A new BGP SAFI, the NH-Reach SAFI, is defined in this
-					document.  It has been assigned value TBD.  A route server
-					or a route server client using the procedures in this
-					document MUST advertise support for this SAFI, for the
-					IPv4 and/or IPv6 Address Family Identifier (AFI). The use
-					of this SAFI with any other AFI is not defined by this
-					document.
-				</t>
-				<t>
-					NH-Reach NLRI "routes" have a Length of Next Hop Network
-					Address value of 0, therefore they have an empty Network
-					Address of Next Hop field (<xref target="RFC4760">section
-					3 of</xref>).
-				</t>
-				<t>
-					Since as specified here, ReachTell "routes" from different
-					clients populate distinct databases on the RS, there will
-					generally be only a single path per "route"; this implies
-					that route selection need not be performed (or
-					equivalently, that it's trivial to perform).
-				</t>
-				<t>
-					In the other direction, a client might peer with multiple
-					route servers and receive differing sets of ReachAsk
-					routes from them. An implementation MAY handle this
-					situation by implementing a distinct ReachAsk and
-					ReachTell per server, but it MAY also handle it by placing
-					all servers' ReachAsk "routes" into a single ReachAsk, and
-					sending the results to all servers from a single
-					ReachTell. This would imply some route server(s) might get
-					ReachTell results they had not asked for, but this is
-					permissible in any case. Again, since the contents of
-					ReachAsk are simply a set of host routes to be tested,
-					route selection over a combined ReachAsk MAY be omitted.
-				</t>
-				<t>
-				    ReachAsk and ReachTell entries are exchanged using the
-				    NH-Reach NLRI encoding: 
-				</t>
-                <figure title="NH-Reach NLRI Format" 
-                		align="center"><artwork><![CDATA[
+			<t>
+				A new BGP SAFI, the NH-Reach SAFI, is defined in this
+				document.  It has been assigned value TBD.  A route server
+				or a route server client using the procedures in this
+				document MUST advertise support for this SAFI, for the
+				IPv4 and/or IPv6 Address Family Identifier (AFI). The use
+				of this SAFI with any other AFI is not defined by this
+				document.
+			</t>
+			<t>
+				NH-Reach NLRI "routes" have a Length of Next Hop Network
+				Address value of 0, therefore they have an empty Network
+				Address of Next Hop field (<xref target="RFC4760">section
+				3 of</xref>).
+			</t>
+			<t>
+				Since as specified here, ReachTell "routes" from different
+				clients populate distinct databases on the RS, there will
+				generally be only a single path per "route"; this implies
+				that route selection need not be performed (or
+				equivalently, that it's trivial to perform).
+			</t>
+			<t>
+				In the other direction, a client might peer with multiple
+				route servers and receive differing sets of ReachAsk
+				routes from them. An implementation MAY handle this
+				situation by implementing a distinct ReachAsk and
+				ReachTell per server, but it MAY also handle it by placing
+				all servers' ReachAsk "routes" into a single ReachAsk, and
+				sending the results to all servers from a single
+				ReachTell. This would imply some route server(s) might get
+				ReachTell results they had not asked for, but this is
+				permissible in any case. Again, since the contents of
+				ReachAsk are simply a set of host routes to be tested,
+				route selection over a combined ReachAsk MAY be omitted.
+			</t>
+			<t>
+				ReachAsk and ReachTell entries are exchanged using the
+				NH-Reach NLRI encoding: 
+			</t>
+			<figure title="NH-Reach NLRI Format" 
+					align="center"><artwork><![CDATA[
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -469,57 +464,56 @@ databases with In/Out Queues" align="center">
 .             ...  next hop (4 or 16 octets) ...                .
 .                                                               .
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-                                ]]></artwork></figure>
+							]]></artwork></figure>
 
-                <t><list style="symbols">
-                	<t>T: Type is a one-bit field that can take the 
-                	   value 0, meaning the NLRI is a ReachAsk entry, or 1,
-                	   meaning it is a ReachTell entry.</t>
-                	<t>Reserved: These five bits are reserved. They MUST
-                	   be sent as zero and MUST be disregarded on 
-                	   receipt.</t>
+			<t><list style="symbols">
+				<t>T: Type is a one-bit field that can take the 
+				   value 0, meaning the NLRI is a ReachAsk entry, or 1,
+				   meaning it is a ReachTell entry.</t>
+				<t>Reserved: These five bits are reserved. They MUST
+				   be sent as zero and MUST be disregarded on 
+				   receipt.</t>
 
-                	<t>Sta: State is a two-bit field used to signal the 
-                	   <xref target="locreach">LocReach</xref> state:
-						<list style="symbols">
-							<t>0 or 3: Unknown.</t>
-							<t>1: Up.</t>
-							<t>2: Down.</t>
-						</list>
-						Although either 0 or 3 is to be interpreted as
-						"Unknown", the value 0 MUST be used on transmission.
-						The value 3 MUST be accepted as an alias for 0 on
-						receipt.
-					</t>
-                	<t>The next hop field is an IPv4 or IPv6 host
-                	   route, depending on whether the AFI is IPv4
-                	   or IPv6.</t>
-                </list></t>
-
-				<t>
-					ReachAsk and ReachTell entries MUST NOT be propagated from
-					one BGP peering session to another; the routes are not
-					transitive.  
+				<t>Sta: State is a two-bit field used to signal the 
+				   <xref target="locreach">LocReach</xref> state:
+					<list style="symbols">
+						<t>0 or 3: Unknown.</t>
+						<t>1: Up.</t>
+						<t>2: Down.</t>
+					</list>
+					Although either 0 or 3 is to be interpreted as
+					"Unknown", the value 0 MUST be used on transmission.
+					The value 3 MUST be accepted as an alias for 0 on
+					receipt.
 				</t>
-				<t>
-					The next hop field is the key for the NH-Reach NLRI type;
-					the information encoded in the top octet is non-key
-					information. It is possible in principle (although
-					unlikely) for two NLRI to be validly present in an UPDATE
-					message with identical next hop fields but different
-					types. However, two NLRI with the same next hop field and
-					different State fields MUST NOT be encoded in the same
-					UPDATE message. If such is encountered, the receiver MUST
-					behave as though the state "Unknown" was received for the
-					next hop in question.
-				</t>
-			</section>
+				<t>The next hop field is an IPv4 or IPv6 host
+				   route, depending on whether the AFI is IPv4
+				   or IPv6.</t>
+			</list></t>
+
+			<t>
+				ReachAsk and ReachTell entries MUST NOT be propagated from
+				one BGP peering session to another; the routes are not
+				transitive.  
+			</t>
+			<t>
+				The next hop field is the key for the NH-Reach NLRI type;
+				the information encoded in the top octet is non-key
+				information. It is possible in principle (although
+				unlikely) for two NLRI to be validly present in an UPDATE
+				message with identical next hop fields but different
+				types. However, two NLRI with the same next hop field and
+				different State fields MUST NOT be encoded in the same
+				UPDATE message. If such is encountered, the receiver MUST
+				behave as though the state "Unknown" was received for the
+				next hop in question.
+			</t>
 		</section>
 
 		<section anchor="client_procedures" 
 				 title="Client Procedures for NH-Reach Changes">
 			<t>
-				When entries are added to a route server client's
+				When an entry is added to a route server client's
 				ReachAsk-In for a route server peering session, the client
 				will then attempt to verify connectivity to the host
 				depicted by that entry.  The procedure described in this
@@ -563,38 +557,37 @@ databases with In/Out Queues" align="center">
 		</section>
 		
 		<section anchor="recommendations" title="Recommendations for Using BFD">
-				<t>
-					The RECOMMENDED way a client router can confirm the data
-					plane connectivity to its next hops is available, is the
-					use of BFD in asynchronous mode. Echo mode MAY be used if
-					both client routers running a BFD session support this.
-					The use of authentication in BFD is OPTIONAL as there is a
-					certain level of trust between the operators of the client
-					routers at a particular IXP. If trust cannot be assumed,
-					it is recommended to use pair-wise keys (how this can be
-					achieved is outside the scope of this document). The
-					ttl/hop limit values as described in <xref
-					target="RFC5881">section 5</xref> MUST be obeyed in order
-					to shield BFD sessions against packets coming from outside
-					the IXP.
-				</t>
-								
-				<t>
-					The following values of the BFD configuration of client
-					routers (see <xref target="RFC5880">section 6.8.1</xref>)
-					are RECOMMENDED in order to allow fast detection of lost
-					data plane connectivity:
-					<list style='symbols'>
-						<t>DesiredMinTxInterval: 1,000,000 (microseconds)</t>
-						<t>RequiredMinRxInterval: 1,000,000 (microseconds)</t>
-						<t>DetectMult: 3</t>
-					</list>
-				</t>
-				<t>
-					A client router administrator MAY select more appropriate
-					values to meet the special needs of a particular
-					deployment.
-				</t>
+			<t>
+				The RECOMMENDED way a client router can confirm the data
+				plane connectivity to its next hops is available, is the
+				use of BFD in asynchronous mode. Echo mode MAY be used if
+				both client routers running a BFD session support this.
+				The use of authentication in BFD is OPTIONAL as there is a
+				certain level of trust between the operators of the client
+				routers at a particular IXP. If trust cannot be assumed,
+				it is recommended to use pair-wise keys (how this can be
+				achieved is outside the scope of this document). The
+				ttl/hop limit values as described in <xref
+				target="RFC5881">section 5</xref> MUST be obeyed in order
+				to shield BFD sessions against packets coming from outside
+				the IXP.
+			</t>
+							
+			<t>
+				The following values of the BFD configuration of client
+				routers (see <xref target="RFC5880">section 6.8.1</xref>)
+				are RECOMMENDED:
+				<list style='symbols'>
+					<t>DesiredMinTxInterval: 1,000,000 (microseconds)</t>
+					<t>RequiredMinRxInterval: 1,000,000 (microseconds)</t>
+					<t>DetectMult: 3</t>
+				</list>
+			</t>
+			<t>
+				A client router administrator MAY select more appropriate
+				values to meet the special needs of a particular
+				deployment.
+			</t>
 		</section>
 
 		<section anchor="other" title="Other Considerations">
@@ -623,8 +616,8 @@ databases with In/Out Queues" align="center">
 
 		<section title="Security Considerations">
 			<t>
-				The mechanism in this document permits route server clients to
-				influence the contents of the route server's Adj-Ribs-Out
+				The mechanism in this document permits a route server client
+				to influence the contents of the route server's Adj-Ribs-Out
 				through its reports of next hop reachability state using the
 				NH-Reach SAFI.  Since this state is per-client, if a route
 				server client is able to inject NH-Reach routes for another
@@ -660,7 +653,6 @@ databases with In/Out Queues" align="center">
 	<back>
 
 		<references title="Normative References">
-		&RFC1997;
 		&RFC2119;
 		&RFC4271;
 		&RFC4760;
