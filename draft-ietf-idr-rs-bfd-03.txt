@@ -91,13 +91,13 @@ Table of Contents
      6.1.  Route Server Client Procedures for NH-Reach Changes . . .   8
    7.  Recommendations for Using BFD . . . . . . . . . . . . . . . .   9
    8.  Other Considerations  . . . . . . . . . . . . . . . . . . . .   9
-   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  10
+   9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .   9
    10. Security Considerations . . . . . . . . . . . . . . . . . . .  10
    11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
      11.1.  Normative References . . . . . . . . . . . . . . . . . .  10
      11.2.  Informative References . . . . . . . . . . . . . . . . .  11
    Appendix A.  Summary of Document Changes  . . . . . . . . . . . .  11
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  12
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  11
 
 1.  Introduction
 
@@ -245,7 +245,7 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    The route server maintains a ReachAsk database for each client that
    supports this proposal, that is, for each client that has advertised
    support (Section 5) for the NH-Reach SAFI at BGP OPEN.  This database
-   is a set comprising the union of:
+   is the union of:
 
    o  The set of next hops found in the associated per-client Loc-RIB
       (see section 2.3.2.1 of [RFC7947]).
@@ -467,17 +467,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    values as described in section 5 [RFC5881] MUST be obeyed in order to
    shield BFD sessions against packets coming from outside the IXP.
 
-   There is interdependence between the functions described in this
-   document and BFD from an administrative point of view.  To streamline
-   behaviour of different implementations the following are RECOMMENDED:
-
-   o  If BFD is administratively shut down by the administrator of a
-      client router then the functions described in this document MUST
-      also be administratively shut down.
-   o  If the administrator enables the functions described in this
-      document on a client router then BFD MUST be automatically
-      enabled.
-
    The following values of the BFD configuration of client routers (see
    section 6.8.1 [RFC5880]) are RECOMMENDED in order to allow fast
    detection of lost data plane connectivity:
@@ -498,14 +487,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    Implementations MAY restrict the range of addresses with which they
    will attempt to form BFD relationships.  For example, an
    implementation might by default only allow BFD relationships with
-
-
-
-Bush, et al.            Expires September 2, 2017               [Page 9]
-
-Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
-
-
    peers that share a subnetwork with the route server.  An
    implementation MAY apply such restrictions by default.
 
@@ -515,6 +496,15 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    Family Identifiers (SAFI) Parameters registry for this proposal.  Its
    Description in that registry shall be NH-Reach with a Reference of
    this RFC.
+
+
+
+
+
+Bush, et al.            Expires September 2, 2017               [Page 9]
+
+Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
+
 
 10.  Security Considerations
 
@@ -552,16 +542,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
               Attribute", RFC 1997, DOI 10.17487/RFC1997, August 1996,
               <http://www.rfc-editor.org/info/rfc1997>.
 
-
-
-
-
-
-Bush, et al.            Expires September 2, 2017              [Page 10]
-
-Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
-
-
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
               DOI 10.17487/RFC2119, March 1997,
@@ -571,6 +551,16 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
               Border Gateway Protocol 4 (BGP-4)", RFC 4271,
               DOI 10.17487/RFC4271, January 2006,
               <http://www.rfc-editor.org/info/rfc4271>.
+
+
+
+
+
+
+Bush, et al.            Expires September 2, 2017              [Page 10]
+
+Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
+
 
    [RFC4760]  Bates, T., Chandra, R., Katz, D., and Y. Rekhter,
               "Multiprotocol Extensions for BGP-4", RFC 4760,
@@ -608,16 +598,6 @@ Appendix A.  Summary of Document Changes
    ymbk-00 to ymbk-01:  Clarifications to BFD procedures.  Use BFD state
      as an input to BGP route selection.
 
-
-
-
-
-
-Bush, et al.            Expires September 2, 2017              [Page 11]
-
-Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
-
-
 Authors' Addresses
 
    Randy Bush
@@ -627,6 +607,15 @@ Authors' Addresses
    US
 
    Email: randy@psg.com
+
+
+
+
+
+
+Bush, et al.            Expires September 2, 2017              [Page 11]
+
+Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
 
 
    Jeffrey Haas
@@ -663,6 +652,17 @@ Authors' Addresses
    Germany
 
    Email: thomas.king@de-cix.net
+
+
+
+
+
+
+
+
+
+
+
 
 
 
