@@ -86,17 +86,17 @@ Table of Contents
      4.3.  ReachTell . . . . . . . . . . . . . . . . . . . . . . . .   6
      4.4.  NHIB  . . . . . . . . . . . . . . . . . . . . . . . . . .   6
    5.  Advertising NH-Reach state in BGP . . . . . . . . . . . . . .   6
-     5.1.  Using the NH-Reach SAFI . . . . . . . . . . . . . . . . .   7
+     5.1.  Using the NH-Reach SAFI . . . . . . . . . . . . . . . . .   6
    6.  Processing NH-Reach State Changes . . . . . . . . . . . . . .   8
      6.1.  Route Server Client Procedures for NH-Reach Changes . . .   8
    7.  Recommendations for Using BFD . . . . . . . . . . . . . . . .   9
-   8.  Other Considerations  . . . . . . . . . . . . . . . . . . . .  10
+   8.  Other Considerations  . . . . . . . . . . . . . . . . . . . .   9
    9.  IANA Considerations . . . . . . . . . . . . . . . . . . . . .  10
    10. Security Considerations . . . . . . . . . . . . . . . . . . .  10
-   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  11
-     11.1.  Normative References . . . . . . . . . . . . . . . . . .  11
+   11. References  . . . . . . . . . . . . . . . . . . . . . . . . .  10
+     11.1.  Normative References . . . . . . . . . . . . . . . . . .  10
      11.2.  Informative References . . . . . . . . . . . . . . . . .  11
-   Appendix A.  Summary of Document Changes  . . . . . . . . . . . .  12
+   Appendix A.  Summary of Document Changes  . . . . . . . . . . . .  11
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  12
 
 1.  Introduction
@@ -124,7 +124,7 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    1.  Client routers must have a means of verifying connectivity
        amongst themselves, and
    2.  Client routers must have a means of communicating the knowledge
-       of the failure back to the route server.
+       of the failure (and restoration) back to the route server.
 
    The first can be solved by application of Bidirectional Forwarding
    Detection [RFC5880].  The second can be solved by exchanging BGP
@@ -177,7 +177,7 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    o  ReachTell-Out: The responses being sent to the route server.
    o  ReachTell-In: The response received from the client.
    o  LocReach: The local reachability database.  Content can be derived
-      from BFD or other sources, as appropriate.
+      from BFD or other OAM sources, as appropriate.
    o  NHIB: Next Hop Information Base.  Stores what is known about the
       client's reachability to its next hops.  Content can be derived
       from ReachTell-In or other sources, as appropriate.
@@ -189,7 +189,7 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    |   |    NHIB    |    |   peers    |    |    RIB     |   |
    |   +-----^------+    +------------+    +-----+------+   |
    |         |                         \         |          |
-   |   +-----+------+                   \-->-----v------+   |
+   |   +-----+------+                   `-->-----v------+   |
    |   |ReachTell-In|                      |ReachAsk-Out|   |
    |   +------^-----+     Route Server     +-----+------+   |
    +----------|----------------------------------|----------+
@@ -214,10 +214,10 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    In outline, the route server requests its client to track
    connectivity for all the potential next hops the RS might send to the
    client, by sending these next hops as ReachAsk "routes".  The client
-   tracks connectivity, using BFD or otherwise, and reports its
-   connectivity status to the RS using ReachTell "routes".  Connectivity
-   status may be that the next hop is reachable, unreachable, or
-   unknown.  Once the RS has been informed by the client of its
+   tracks connectivity, using BFD or an other OAM source, and reports
+   its connectivity status to the RS using ReachTell "routes".
+   Connectivity status may be that the next hop is reachable,
+   unreachable, or unknown.  Once the RS has been informed by the client
 
 
 
@@ -226,7 +226,7 @@ Bush, et al.            Expires September 2, 2017               [Page 4]
 Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
 
 
-   connectivity, it uses this information to influence the route
+   of its connectivity, it uses this information to influence the route
    selection the RS performs on behalf of the client.  Details are
    elaborated in the following sections.
 
@@ -244,8 +244,8 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
 
    The route server maintains a ReachAsk database for each client that
    supports this proposal, that is, for each client that has advertised
-   support for the NH-Reach SAFI.  This database is a set comprising the
-   union of:
+   support (Section 5) for the NH-Reach SAFI at BGP OPEN.  This database
+   is a set comprising the union of:
 
    o  The set of next hops found in the associated per-client Loc-RIB
       (see section 2.3.2.1 of [RFC7947]).
@@ -253,15 +253,14 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    o  The RS MAY also add other entries, for example under configuration
       control.
 
-   We note that under most circumstances, the former (Loc-RIB next hops)
-   set will be a subset of the latter (indirect peers) set.  For this
-   not to be the case, a client would have to have sent a "third party"
-   next hop [RFC4271] to the server.  To cover such a case, an
-   implementation MAY note any such next hops, and include them in its
-   list of indirect peers.  (This implies that if a third party next hop
-   for client C is conveyed to client A, not only will C be placed in
-   A's ReachAsk database, but A will be placed in C's ReachAsk
-   database.)
+   We note that under most circumstances, the first (Loc-RIB next hops)
+   set will be a subset of the last (indirect peers) set.  For this not
+   to be the case, a client would have to have sent a "third party" next
+   hop [RFC4271] to the server.  To cover such a case, an implementation
+   MAY note any such next hops, and include them in its list of indirect
+   peers.  (This implies that if a third party next hop for client C is
+   conveyed to client A, not only will C be placed in A's ReachAsk
+   database, but A will be placed in C's ReachAsk database.)
 
    The contents of the ReachAsk database are communicated to the client
    using the NLRI format and procedures described below (Section 5).
@@ -273,7 +272,8 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    connectivity to other addresses.  This document discusses the use of
    BFD for this purpose, detailed in Section 6.1.
 
-
+   For each address being tracked, its state is maintained by the client
+   in a LocReach entry.  The state can be:
 
 
 
@@ -281,9 +281,6 @@ Bush, et al.            Expires September 2, 2017               [Page 5]
 
 Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
 
-
-   For each address being tracked, a LocReach entry is created to
-   indicate its state.  The state can be:
 
    o  Unknown.  Connectivity status is unknown.  This may be due to a
       temporary or permanent lack of feasible OAM mechanism to determine
@@ -315,28 +312,15 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    looked up in the NHIB and its state determined:
 
    o  Up next hops are considered resolvable.
-   o  Unknown next hops MAY be considered resolvable.  They MAY be
-      considered less preferable for selection.
+   o  Unknown next hops MAY be considered resolvable.  They MAY be less
+      preferred for selection.
    o  Down next hops MUST NOT be considered resolvable.
    o  If a given next hop is not present in the NHIB, but is present in
       ReachAsk-Out, either the client has not responded yet (a transient
       condition) or an error exists.  Similar to Down next hops, such
-      routes MAY be considered resolvable; they MAY be considered less
-      preferable.
+      routes MAY be considered resolvable; they MAY be less preferred.
 
 5.  Advertising NH-Reach state in BGP
-
-
-
-
-
-
-
-
-Bush, et al.            Expires September 2, 2017               [Page 6]
-
-Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
-
 
 5.1.  Using the NH-Reach SAFI
 
@@ -345,6 +329,14 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    using the procedures in this document MUST advertise support for this
    SAFI, for the IPv4 and/or IPv6 Address Family Identifier (AFI).  The
    use of this SAFI with any other AFI is not defined by this document.
+
+
+
+
+Bush, et al.            Expires September 2, 2017               [Page 6]
+
+Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
+
 
    NH-Reach NLRI "routes" have a Length of Next Hop Network Address
    value of 0, therefore they have an empty Network Address of Next Hop
@@ -387,13 +379,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    o  Sta: State is a two-bit field used to signal the LocReach
       (Section 4.2) state:
 
-
-
-Bush, et al.            Expires September 2, 2017               [Page 7]
-
-Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
-
-
       *  0 or 3: Unknown.
       *  1: Up.
       *  2: Down.
@@ -401,6 +386,14 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
       Although either 0 or 3 is to be interpreted as "Unknown", the
       value 0 MUST be used on transmission.  The value 3 MUST be
       accepted as an alias for 0 on receipt.
+
+
+
+Bush, et al.            Expires September 2, 2017               [Page 7]
+
+Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
+
+
    o  The next hop field is an IPv4 or IPv6 host route, depending on
       whether the AFI is IPv4 or IPv6.
 
@@ -415,8 +408,8 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    present in an UPDATE message with identical next hop fields but
    different types.  However, two NLRI with the same next hop field and
    different State fields MUST NOT be encoded in the same UPDATE
-   message.  If such are encountered, the receiver MUST behave as though
-   the state "Unknown" were received for the next hop in question.
+   message.  If such is encountered, the receiver MUST behave as though
+   the state "Unknown" was received for the next hop in question.
 
 6.  Processing NH-Reach State Changes
 
@@ -425,8 +418,8 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    When entries are added to a route server client's ReachAsk-In for a
    route server peering session, the client will then attempt to verify
    connectivity to the host depicted by that entry.  The procedure
-   described in this specification utilizes BFD; other mechanisms are
-   permitted but are out of scope of this document.
+   described in this specification utilizes BFD; other OAM mechanisms
+   are permitted but are out of scope of this document.
 
    If no existing BFD session exists to this nexthop, a BFD session is
    provisioned to that IP address and the LocReach Up state
@@ -441,15 +434,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    Once the BFD session moves to the Up state, the LocReach Reachable
    state is set to Up.
 
-
-
-
-
-Bush, et al.            Expires September 2, 2017               [Page 8]
-
-Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
-
-
    When the BFD session transitions out of the Up state to the Down
    state, the LocReach Reachable state is set to Down.
 
@@ -458,6 +442,14 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
 
    When entries are removed from the route server client's ReachAsk-In
    for a route server peering session, the client MAY delay de-
+
+
+
+Bush, et al.            Expires September 2, 2017               [Page 8]
+
+Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
+
+
    provisioning the BFD peering session.  If the client delays de-
    provisioning the session, it should remove it if the BFD session
    transitions to the Down or AdminDown states.
@@ -497,15 +489,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    A client router administrator MAY select more appropriate values to
    meet the special needs of a particular deployment.
 
-
-
-
-
-Bush, et al.            Expires September 2, 2017               [Page 9]
-
-Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
-
-
 8.  Other Considerations
 
    For purposes of routing stability, implementations may wish to apply
@@ -515,6 +498,14 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    Implementations MAY restrict the range of addresses with which they
    will attempt to form BFD relationships.  For example, an
    implementation might by default only allow BFD relationships with
+
+
+
+Bush, et al.            Expires September 2, 2017               [Page 9]
+
+Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
+
+
    peers that share a subnetwork with the route server.  An
    implementation MAY apply such restrictions by default.
 
@@ -553,6 +544,15 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    Down.  These attacks may be mitigated using the BFD security
    mechanisms defined in [RFC5880].
 
+11.  References
+
+11.1.  Normative References
+
+   [RFC1997]  Chandra, R., Traina, P., and T. Li, "BGP Communities
+              Attribute", RFC 1997, DOI 10.17487/RFC1997, August 1996,
+              <http://www.rfc-editor.org/info/rfc1997>.
+
+
 
 
 
@@ -561,14 +561,6 @@ Bush, et al.            Expires September 2, 2017              [Page 10]
 
 Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
 
-
-11.  References
-
-11.1.  Normative References
-
-   [RFC1997]  Chandra, R., Traina, P., and T. Li, "BGP Communities
-              Attribute", RFC 1997, DOI 10.17487/RFC1997, August 1996,
-              <http://www.rfc-editor.org/info/rfc1997>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -594,11 +586,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
               DOI 10.17487/RFC5881, June 2010,
               <http://www.rfc-editor.org/info/rfc5881>.
 
-   [RFC7606]  Chen, E., Ed., Scudder, J., Ed., Mohapatra, P., and K.
-              Patel, "Revised Error Handling for BGP UPDATE Messages",
-              RFC 7606, DOI 10.17487/RFC7606, August 2015,
-              <http://www.rfc-editor.org/info/rfc7606>.
-
    [RFC7947]  Jasinska, E., Hilliard, N., Raszuk, R., and N. Bakker,
               "Internet Exchange BGP Route Server", RFC 7947,
               DOI 10.17487/RFC7947, September 2016,
@@ -610,14 +597,6 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
               RFC 4272, DOI 10.17487/RFC4272, January 2006,
               <http://www.rfc-editor.org/info/rfc4272>.
 
-
-
-
-Bush, et al.            Expires September 2, 2017              [Page 11]
-
-Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
-
-
 Appendix A.  Summary of Document Changes
 
    idr-02 to idr-03:  Substantial rewrite.  Introduce NLRI format that
@@ -628,6 +607,16 @@ Appendix A.  Summary of Document Changes
    ymbk-01 to idr-00:  No technical changes; adopted by IDR.
    ymbk-00 to ymbk-01:  Clarifications to BFD procedures.  Use BFD state
      as an input to BGP route selection.
+
+
+
+
+
+
+Bush, et al.            Expires September 2, 2017              [Page 11]
+
+Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
+
 
 Authors' Addresses
 
@@ -667,13 +656,6 @@ Authors' Addresses
    Email: arnold.nipper@de-cix.net
 
 
-
-
-Bush, et al.            Expires September 2, 2017              [Page 12]
-
-Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
-
-
    Thomas King
    DE-CIX Management GmbH
    Lichtstrasse 43i
@@ -687,42 +669,4 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Bush, et al.            Expires September 2, 2017              [Page 13]
+Bush, et al.            Expires September 2, 2017              [Page 12]
