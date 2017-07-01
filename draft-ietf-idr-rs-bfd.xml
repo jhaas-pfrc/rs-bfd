@@ -7,7 +7,6 @@
 <!ENTITY RFC4760 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4760.xml">
 <!ENTITY RFC5880 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5880.xml">
 <!ENTITY RFC5881 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5881.xml">
-<!ENTITY RFC7606 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7606.xml">
 <!ENTITY RFC7947 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7947.xml">
 ]>
 <?rfc comments="yes"?>
@@ -24,7 +23,8 @@
 
 <rfc category="std" docName="draft-ietf-idr-rs-bfd-03">
 	<front>
-		<title abbrev="Making RSes aware of IXP Data Link Failures">Making Route Servers Aware of Data Link Failures at IXPs</title>
+		<title abbrev="Making RSes aware of IXP Data Link Failures">Making
+			   Route Servers Aware of Data Link Failures at IXPs</title>
 
 		<author fullname="Randy Bush" initials="R." surname="Bush">
 			<organization>Internet Initiative Japan</organization>
@@ -148,9 +148,10 @@
 				To remedy this, two basic problems need to be solved:
 				<list style="numbers">
 				<t>Client routers must have a means of verifying connectivity
-				amongst themselves, and</t>
-				<t>Client routers must have a means of communicating the knowledge
-				of the failure (and restoration) back to the route server.</t>
+				   amongst themselves, and</t>
+				<t>Client routers must have a means of communicating the
+				   knowledge of the failure (and restoration) back to the 
+				   route server.</t>
 				</list>
 			</t>
 			<t>
@@ -198,41 +199,44 @@
 
 		<section anchor="overview" title="Overview">
 			<t>
-				As with the base BGP protocol, we model the function of this extension
-				as the interaction between a conceptual set of databases:
+				As with the base BGP protocol, we model the function of this
+				extension as the interaction between a conceptual set of
+				databases:
 			</t>
 			<t>
 				<list style="symbols">
 					<t>
-						ReachAsk: The reachability request database. A database of 
-						nexthops (host addresses) for which data plane reachability
-						is being queried. 
+						ReachAsk: The reachability request database. A
+						database of nexthops (host addresses) for which data
+						plane reachability is being queried. 
 					</t>
 					<t>
 						ReachAsk-Out: A set of queries sent to the client.
 					</t>
 					<t>
-						ReachAsk-In: A set of queries received from the route server.
+						ReachAsk-In: A set of queries received from the route
+						server.
 					</t>
 					<t>
-						ReachTell: The reachability response database. A database of
-						responses to ReachAsk queries, indicating what is known about
-						data plane reachability.
+						ReachTell: The reachability response database. A
+						database of responses to ReachAsk queries, indicating
+						what is known about data plane reachability.
 					</t>
 					<t>
-						ReachTell-Out: The responses being sent to the route server.
+						ReachTell-Out: The responses being sent to the route
+						server.
 					</t>
 					<t>
 						ReachTell-In: The response received from the client.
 					</t>
 					<t>
-						LocReach: The local reachability database. Content can be
-						derived from BFD or other OAM sources, as appropriate.
+						LocReach: The local reachability database. 
 					</t>
 					<t>
-					    NHIB: Next Hop Information Base. Stores what is known about
-					    the client's reachability to its next hops. Content can be
-					    derived from ReachTell-In or other sources, as appropriate.
+					    NHIB: Next Hop Information Base. Stores what is known
+					    about the client's reachability to its next hops.
+					    Content can be derived from ReachTell-In or other
+					    sources, as appropriate.
 					</t>
 				</list>
 			</t>
@@ -272,14 +276,13 @@ databases with In/Out Queues" align="center">
 				In outline, the route server requests its client to track
 				connectivity for all the potential next hops the RS might send
 				to the client, by sending these next hops as ReachAsk
-				"routes". The client tracks connectivity, using BFD or an
-				other OAM source, and reports its connectivity status to the RS using
-				ReachTell "routes". Connectivity status may be that the next
-				hop is reachable, unreachable, or unknown. Once the RS has
-				been informed by the client of its connectivity, it uses this
-				information to influence the route selection the RS performs
-				on behalf of the client. Details are elaborated in the
-				following sections.
+				"routes". The client tracks connectivity using BFD and reports
+				its connectivity status to the RS using ReachTell "routes".
+				Connectivity status may be that the next hop is reachable,
+				unreachable, or unknown. Once the RS has been informed by the
+				client of its connectivity, it uses this information to
+				influence the route selection the RS performs on behalf of the
+				client. Details are elaborated in the following sections.
 			</t>
 		</section>
 		
@@ -298,8 +301,8 @@ databases with In/Out Queues" align="center">
 			<section anchor="reachask" title="ReachAsk">
 				<t>
 					The route server maintains a ReachAsk database for each
-					client that supports this proposal, that is, for each client
-					that has <xref target="advertising">advertised
+					client that supports this proposal, that is, for each
+					client that has <xref target="advertising">advertised
 					support</xref> for the NH-Reach SAFI at BGP OPEN.  This
 					database is the union of:
 					
@@ -321,14 +324,14 @@ databases with In/Out Queues" align="center">
 					
 					We note that under most circumstances, the first (Loc-RIB
 					next hops) set will be a subset of the last (indirect
-					peers) set. For this not to be the case, a client would have
-					to have sent a "third party" next hop <xref target="RFC4271"/>
-					to the server. To cover such a case, an implementation MAY 
-					note any such next hops, and include them in its list of
-					indirect peers. (This implies that if a third party next hop
-					for client C is conveyed to client A, not only will C be 
-					placed in A's ReachAsk database, but A will be placed in C's
-					ReachAsk database.)
+					peers) set. For this not to be the case, a client would
+					have to have sent a "third party" next hop <xref
+					target="RFC4271"/> to the server. To cover such a case, an
+					implementation MAY note any such next hops, and include
+					them in its list of indirect peers. (This implies that if
+					a third party next hop for client C is conveyed to client
+					A, not only will C be placed in A's ReachAsk database, but
+					A will be placed in C's ReachAsk database.)
 				</t>
 				
 				<t>
@@ -470,10 +473,11 @@ databases with In/Out Queues" align="center">
 
                 <t><list style="symbols">
                 	<t>T: Type is a one-bit field that can take the 
-                	   value 0, meaning the NLRI is a ReachAsk entry, or 1, 
+                	   value 0, meaning the NLRI is a ReachAsk entry, or 1,
                 	   meaning it is a ReachTell entry.</t>
                 	<t>Reserved: These five bits are reserved. They MUST
-                	   be sent as zero and MUST be disregarded on receipt.</t>
+                	   be sent as zero and MUST be disregarded on 
+                	   receipt.</t>
 
                 	<t>Sta: State is a two-bit field used to signal the 
                 	   <xref target="locreach">LocReach</xref> state:
@@ -482,9 +486,10 @@ databases with In/Out Queues" align="center">
 							<t>1: Up.</t>
 							<t>2: Down.</t>
 						</list>
-						Although either 0 or 3 is to be interpreted as "Unknown",
-						the value 0 MUST be used on transmission. The value 3 MUST
-						be accepted as an alias for 0 on receipt.
+						Although either 0 or 3 is to be interpreted as
+						"Unknown", the value 0 MUST be used on transmission.
+						The value 3 MUST be accepted as an alias for 0 on
+						receipt.
 					</t>
                 	<t>The next hop field is an IPv4 or IPv6 host
                 	   route, depending on whether the AFI is IPv4
@@ -494,9 +499,7 @@ databases with In/Out Queues" align="center">
 				<t>
 					ReachAsk and ReachTell entries MUST NOT be propagated from
 					one BGP peering session to another; the routes are not
-					transitive.  To this end, the <xref
-					target="RFC1997">NO_ADVERTISE community</xref> MUST be
-					transmitted with every NH-Reach route.
+					transitive.  
 				</t>
 				<t>
 					The next hop field is the key for the NH-Reach NLRI type;
@@ -513,73 +516,74 @@ databases with In/Out Queues" align="center">
 			</section>
 		</section>
 
-		<section title="Processing NH-Reach State Changes">
-			<section anchor="client_procedures" 
-					 title="Route Server Client Procedures for NH-Reach Changes">
-				<t>
-					When entries are added to a route server client's ReachAsk-In for a route
-					server peering session, the client will then attempt to verify connectivity to the
-					host depicted by that entry.  The procedure described in this specification utilizes
-					BFD; other OAM mechanisms are permitted but are out of scope of this document.
-				</t>
-				<t>
-					If no existing BFD session exists to this nexthop, a BFD
-					session is provisioned to that IP address and the LocReach
-					<xref target="locreach">Up state</xref> is set to
-					Unknown.  Since this session requires the remote BFD
-					session to also be provisioned, it may stay in the
-					Down/AdminDown state for a period of time.
-				</t>
-				<t>
-					If the client cannot establish a BFD session with an entry
-					in its ReachAsk-In, the nexthop remains in 
-					LocReach with its Reachable state Unknown.
-				</t>
-				<t>
-					Once the BFD session moves to the Up state, the LocReach
-					Reachable state is set to Up.  
-				</t>
-				<t>
-					When the BFD session transitions out of the Up state to
-					the Down state, the LocReach Reachable state is set to
-					Down.  
-				</t>
-				<t>
-					If the BFD session transitions out of the Up state to the
-					AdminDown state, the LocReach Reachable state is set to
-					Unknown.  
-				</t>
-				<t>
-					When entries are removed from the route server client's
-					ReachAsk-In for a route server peering session, the client
-					MAY delay de-provisioning the BFD peering session.  If the
-					client delays de-provisioning the session, it should
-					remove it if the BFD session transitions to the Down or
-					AdminDown states. 
-				</t>
-			</section>
+		<section anchor="client_procedures" 
+				 title="Client Procedures for NH-Reach Changes">
+			<t>
+				When entries are added to a route server client's
+				ReachAsk-In for a route server peering session, the client
+				will then attempt to verify connectivity to the host
+				depicted by that entry.  The procedure described in this
+				specification utilizes BFD.
+			</t>
+			<t>
+				If no existing BFD session exists to this nexthop, a BFD
+				session is provisioned to that IP address and the LocReach
+				<xref target="locreach">Up state</xref> is set to
+				Unknown.  Since this session requires the remote BFD
+				session to also be provisioned, it may stay in the
+				Down/AdminDown state for a period of time.
+			</t>
+			<t>
+				If the client cannot establish a BFD session with an entry
+				in its ReachAsk-In, the nexthop remains in 
+				LocReach with its Reachable state Unknown.
+			</t>
+			<t>
+				Once the BFD session moves to the Up state, the LocReach
+				Reachable state is set to Up.  
+			</t>
+			<t>
+				When the BFD session transitions out of the Up state to
+				the Down state, the LocReach Reachable state is set to
+				Down.  
+			</t>
+			<t>
+				If the BFD session transitions out of the Up state to the
+				AdminDown state, the LocReach Reachable state is set to
+				Unknown.  
+			</t>
+			<t>
+				When entries are removed from the route server client's
+				ReachAsk-In for a route server peering session, the client
+				MAY delay de-provisioning the BFD peering session.  If the
+				client delays de-provisioning the session, it should
+				remove it if the BFD session transitions to the Down or
+				AdminDown states. 
+			</t>
 		</section>
 		
 		<section anchor="recommendations" title="Recommendations for Using BFD">
 				<t>
-					The RECOMMENDED way a client router can confirm the data plane
-					connectivity to its next hops is available, is the use of BFD in
-					asynchronous mode. Echo mode MAY be used if both client routers running
-					a BFD session support this. The use of authentication in BFD is
-					OPTIONAL as there is a certain level of trust between the
-					operators of the client routers at a particular IXP. If trust cannot
-					be assumed, it is recommended to use pair-wise keys (how this can be
-					achieved is outside the scope of this document).
-					The ttl/hop limit values as described in
-					<xref target="RFC5881">section 5</xref>
-					MUST be obeyed in order to shield BFD sessions against packets
-					coming from outside the IXP.
+					The RECOMMENDED way a client router can confirm the data
+					plane connectivity to its next hops is available, is the
+					use of BFD in asynchronous mode. Echo mode MAY be used if
+					both client routers running a BFD session support this.
+					The use of authentication in BFD is OPTIONAL as there is a
+					certain level of trust between the operators of the client
+					routers at a particular IXP. If trust cannot be assumed,
+					it is recommended to use pair-wise keys (how this can be
+					achieved is outside the scope of this document). The
+					ttl/hop limit values as described in <xref
+					target="RFC5881">section 5</xref> MUST be obeyed in order
+					to shield BFD sessions against packets coming from outside
+					the IXP.
 				</t>
 								
 				<t>
-					The following values of the BFD configuration of client routers
-					(see <xref target="RFC5880">section 6.8.1</xref>) are RECOMMENDED in
-					order to allow fast detection of lost data plane connectivity:
+					The following values of the BFD configuration of client
+					routers (see <xref target="RFC5880">section 6.8.1</xref>)
+					are RECOMMENDED in order to allow fast detection of lost
+					data plane connectivity:
 					<list style='symbols'>
 						<t>DesiredMinTxInterval: 1,000,000 (microseconds)</t>
 						<t>RequiredMinRxInterval: 1,000,000 (microseconds)</t>
@@ -595,24 +599,25 @@ databases with In/Out Queues" align="center">
 
 		<section anchor="other" title="Other Considerations">
 			<t>
-				For purposes of routing stability, implementations may wish to apply
-				hysteresis ("holddown") to next hops that have transitioned from
-				reachable to unreachable and back. 
+				For purposes of routing stability, implementations may wish to
+				apply hysteresis ("holddown") to next hops that have
+				transitioned from reachable to unreachable and back. 
 			</t>
 			<t>
-				Implementations MAY restrict the range of addresses with which they
-				will attempt to form BFD relationships. For example, an implementation
-				might by default only allow BFD relationships with peers that share
-				a subnetwork with the route server. An implementation MAY apply such
-				restrictions by default.
+				Implementations MAY restrict the range of addresses with which
+				they will attempt to form BFD relationships. For example, an
+				implementation might by default only allow BFD relationships
+				with peers that share a subnetwork with the route server. An
+				implementation MAY apply such restrictions by default.
 			</t>
 		</section>
 
 		<section title="IANA Considerations">
 			<t>
-				IANA is requested to allocate a value from the Subsequent Address Family Identifiers
-				(SAFI) Parameters registry for this proposal.  Its Description in that registry shall
-				be NH-Reach with a Reference of this RFC.
+				IANA is requested to allocate a value from the Subsequent
+				Address Family Identifiers (SAFI) Parameters registry for this
+				proposal.  Its Description in that registry shall be NH-Reach
+				with a Reference of this RFC.
 			</t>
 		</section>
 
@@ -641,11 +646,13 @@ databases with In/Out Queues" align="center">
 				the request of the server.
 			</t>
 			<t>
-				The reachability tests between route server clients themselves may be a target for
-				attack.  Such attacks may include forcing a BFD session Down through injecting false BFD
-				state.  A less likely attack includes forcing a BFD session to stay Up when its real
-				state is Down.  These attacks may be mitigated using the BFD security mechanisms defined
-				in <xref target="RFC5880"/>.
+				The reachability tests between route server clients themselves
+				may be a target for attack.  Such attacks may include forcing
+				a BFD session Down through injecting false BFD state.  A less
+				likely attack includes forcing a BFD session to stay Up when
+				its real state is Down.  These attacks may be mitigated using
+				the BFD security mechanisms defined in <xref
+				target="RFC5880"/>.
 			</t>
 		</section>
 	</middle>
@@ -659,7 +666,6 @@ databases with In/Out Queues" align="center">
 		&RFC4760;
 		&RFC5880;
 		&RFC5881;
-<!--		&RFC7606; -->
 		&RFC7947;
 		</references>
 		<references title="Informative References">
@@ -669,14 +675,16 @@ databases with In/Out Queues" align="center">
 		<section title="Summary of Document Changes">
 		    <t>
 		    <list style="hanging" hangIndent="2">
-		    <t hangText="idr-02 to idr-03:">Substantial rewrite. Introduce NLRI format
-		       that embeds state.</t>
+		    <t hangText="idr-02 to idr-03:">Substantial rewrite. Introduce 
+		       NLRI format that embeds state.</t>
 			<t hangText="idr-01 to idr-02:">Move from BGP-LS to NH-Reach SAFI.
 			   Lots of editorial changes.</t>
-			<t hangText="idr-00 to idr-01:">Add BGP Capability.  Move from NH-Cost to BGP-LS.</t>
-			<t hangText="ymbk-01 to idr-00:">No technical changes; adopted by IDR.</t>
-			<t hangText="ymbk-00 to ymbk-01:">Clarifications to BFD procedures. Use BFD state
-			   as an input to BGP route selection.</t>
+			<t hangText="idr-00 to idr-01:">Add BGP Capability.  Move from 
+			   NH-Cost to BGP-LS.</t>
+			<t hangText="ymbk-01 to idr-00:">No technical changes; adopted by 
+			   IDR.</t>
+			<t hangText="ymbk-00 to ymbk-01:">Clarifications to BFD procedures. 
+			   Use BFD state as an input to BGP route selection.</t>
 
 		    </list>
 		    </t>
