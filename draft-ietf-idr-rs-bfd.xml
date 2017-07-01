@@ -150,7 +150,7 @@
 				<t>Client routers must have a means of verifying connectivity
 				amongst themselves, and</t>
 				<t>Client routers must have a means of communicating the knowledge
-				of the failure back to the route server.</t>
+				of the failure (and restoration) back to the route server.</t>
 				</list>
 			</t>
 			<t>
@@ -227,7 +227,7 @@
 					</t>
 					<t>
 						LocReach: The local reachability database. Content can be
-						derived from BFD or other sources, as appropriate.
+						derived from BFD or other OAM sources, as appropriate.
 					</t>
 					<t>
 					    NHIB: Next Hop Information Base. Stores what is known about
@@ -247,7 +247,7 @@ databases with In/Out Queues" align="center">
 |   |    NHIB    |    |   peers    |    |    RIB     |   |
 |   +-----^------+    +------------+    +-----+------+   |
 |         |                         \         |          |
-|   +-----+------+                   \-->-----v------+   |
+|   +-----+------+                   `-->-----v------+   |
 |   |ReachTell-In|                      |ReachAsk-Out|   |
 |   +------^-----+     Route Server     +-----+------+   |
 +----------|----------------------------------|----------+
@@ -272,8 +272,8 @@ databases with In/Out Queues" align="center">
 				In outline, the route server requests its client to track
 				connectivity for all the potential next hops the RS might send
 				to the client, by sending these next hops as ReachAsk
-				"routes". The client tracks connectivity, using BFD or
-				otherwise, and reports its connectivity status to the RS using
+				"routes". The client tracks connectivity, using BFD or an
+				other OAM source, and reports its connectivity status to the RS using
 				ReachTell "routes". Connectivity status may be that the next
 				hop is reachable, unreachable, or unknown. Once the RS has
 				been informed by the client of its connectivity, it uses this
@@ -298,9 +298,10 @@ databases with In/Out Queues" align="center">
 			<section anchor="reachask" title="ReachAsk">
 				<t>
 					The route server maintains a ReachAsk database for each
-					client that supports this proposal, that is, for each
-					client that has advertised support for the NH-Reach SAFI.
-					This database is a set comprising the union of:
+					client that supports this proposal, that is, for each client
+					that has <xref target="advertising">advertised
+					support</xref> for the NH-Reach SAFI at BGP OPEN.  This
+					database is a set comprising the union of:
 					
 					<list style="symbols">
 						<t>
@@ -318,8 +319,8 @@ databases with In/Out Queues" align="center">
 						</t>
 					</list>
 					
-					We note that under most circumstances, the former (Loc-RIB
-					next hops) set will be a subset of the latter (indirect
+					We note that under most circumstances, the first (Loc-RIB
+					next hops) set will be a subset of the last (indirect
 					peers) set. For this not to be the case, a client would have
 					to have sent a "third party" next hop <xref target="RFC4271"/>
 					to the server. To cover such a case, an implementation MAY 
@@ -347,8 +348,8 @@ databases with In/Out Queues" align="center">
 				</t>
 				
 				<t>
-					For each address being tracked, a LocReach entry is created
-					to indicate its state. The state can be:
+					For each address being tracked, its state is maintained by
+					the client in a LocReach entry. The state can be:
 					
 					<list style="symbols">
 						<t>Unknown. Connectivity status is unknown. This may be
@@ -399,16 +400,15 @@ databases with In/Out Queues" align="center">
 					<list style="symbols">
 						<t>Up next hops are considered resolvable.</t>
 						<t>Unknown next hops MAY be considered resolvable.
-						They MAY be considered less preferable for
-						selection.</t>
+						They MAY be less preferred for selection.</t>
 						<t>Down next hops MUST NOT be considered 
 						resolvable.</t>
 						<t>If a given next hop is not present in the NHIB, but
 						is present in ReachAsk-Out, either the client has not
 						responded yet (a transient condition) or an error
 						exists. Similar to Down next hops, such routes
-						MAY be considered resolvable; they MAY be considered
-						less preferable.</t>
+						MAY be considered resolvable; they MAY be
+						less preferred.</t>
 					</list>
 				</t>
 			</section>
@@ -506,8 +506,8 @@ databases with In/Out Queues" align="center">
 					message with identical next hop fields but different
 					types. However, two NLRI with the same next hop field and
 					different State fields MUST NOT be encoded in the same
-					UPDATE message. If such are encountered, the receiver MUST
-					behave as though the state "Unknown" were received for the
+					UPDATE message. If such is encountered, the receiver MUST
+					behave as though the state "Unknown" was received for the
 					next hop in question.
 				</t>
 			</section>
@@ -520,7 +520,7 @@ databases with In/Out Queues" align="center">
 					When entries are added to a route server client's ReachAsk-In for a route
 					server peering session, the client will then attempt to verify connectivity to the
 					host depicted by that entry.  The procedure described in this specification utilizes
-					BFD; other mechanisms are permitted but are out of scope of this document.
+					BFD; other OAM mechanisms are permitted but are out of scope of this document.
 				</t>
 				<t>
 					If no existing BFD session exists to this nexthop, a BFD
@@ -674,7 +674,7 @@ databases with In/Out Queues" align="center">
 		&RFC4760;
 		&RFC5880;
 		&RFC5881;
-		&RFC7606;
+<!--		&RFC7606; -->
 		&RFC7947;
 		</references>
 		<references title="Informative References">
