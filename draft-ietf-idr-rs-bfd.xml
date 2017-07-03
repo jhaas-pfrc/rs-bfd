@@ -522,10 +522,8 @@ databases with In/Out Queues" align="center">
 			<t>
 				If no existing BFD session exists to this nexthop, a BFD
 				session is provisioned to that IP address and the LocReach
-				<xref target="locreach">Up state</xref> is set to
-				Unknown.  Since this session requires the remote BFD
-				session to also be provisioned, it may stay in the
-				Down/AdminDown state for a period of time.
+				<xref target="locreach">reachability state</xref> is set to
+				Unknown. 
 			</t>
 			<t>
 				If the client cannot establish a BFD session with an entry
@@ -534,16 +532,16 @@ databases with In/Out Queues" align="center">
 			</t>
 			<t>
 				Once the BFD session moves to the Up state, the LocReach
-				Reachable state is set to Up.  
+				reachability state is set to Up.  
 			</t>
 			<t>
 				When the BFD session transitions out of the Up state to
-				the Down state, the LocReach Reachable state is set to
+				the Down state, the LocReach reachability state is set to
 				Down.  
 			</t>
 			<t>
 				If the BFD session transitions out of the Up state to the
-				AdminDown state, the LocReach Reachable state is set to
+				AdminDown state, the LocReach reachability state is set to
 				Unknown.  
 			</t>
 			<t>

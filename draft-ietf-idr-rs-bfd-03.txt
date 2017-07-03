@@ -417,29 +417,29 @@ Internet-Draft Making RSes aware of IXP Data Link Failures    March 2017
    described in this specification utilizes BFD.
 
    If no existing BFD session exists to this nexthop, a BFD session is
-   provisioned to that IP address and the LocReach Up state
-   (Section 4.2) is set to Unknown.  Since this session requires the
-   remote BFD session to also be provisioned, it may stay in the Down/
-   AdminDown state for a period of time.
+   provisioned to that IP address and the LocReach reachability state
+   (Section 4.2) is set to Unknown.
 
    If the client cannot establish a BFD session with an entry in its
    ReachAsk-In, the nexthop remains in LocReach with its Reachable state
    Unknown.
 
-   Once the BFD session moves to the Up state, the LocReach Reachable
+   Once the BFD session moves to the Up state, the LocReach reachability
    state is set to Up.
 
    When the BFD session transitions out of the Up state to the Down
-   state, the LocReach Reachable state is set to Down.
+   state, the LocReach reachability state is set to Down.
 
    If the BFD session transitions out of the Up state to the AdminDown
-   state, the LocReach Reachable state is set to Unknown.
+   state, the LocReach reachability state is set to Unknown.
 
    When entries are removed from the route server client's ReachAsk-In
    for a route server peering session, the client MAY delay de-
    provisioning the BFD peering session.  If the client delays de-
    provisioning the session, it should remove it if the BFD session
    transitions to the Down or AdminDown states.
+
+
 
 
 
