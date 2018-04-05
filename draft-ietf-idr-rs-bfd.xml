@@ -7,6 +7,7 @@
 <!ENTITY RFC5880 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5880.xml">
 <!ENTITY RFC5881 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5881.xml">
 <!ENTITY RFC7947 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7947.xml">
+<!ENTITY I-D.ietf-idr-bgp-bestpath-selection-criteria SYSTEM "http://xml.resource.org/public/rfc/bibxml3/reference.I-D.ietf-idr-bgp-bestpath-selection-criteria.xml">
 ]>
 <?rfc comments="yes"?>
 <?rfc compact="yes"?>
@@ -177,6 +178,14 @@
 				that there could be other applications for this extension. Our
 				use of terminology is intended for clarity of description, and
 				not to limit the future applicability of the proposal.
+			</t>
+			<t>
+				<xref target="I-D.ietf-idr-bgp-bestpath-selection-criteria"/>
+				discusses enhancement of the route resolvability condition of
+				<xref target="RFC4271">section 9.1.2.1 of</xref> to include
+				next hop reachability and path availability checks. This
+				specification represents in part an instance of such,
+				implemented using BFD as the OAM mechanism.
 			</t>
 
 		</section>
@@ -660,6 +669,7 @@ databases with In/Out Queues" align="center">
 		</references>
 		<references title="Informative References">
 		&RFC4272;
+		&I-D.ietf-idr-bgp-bestpath-selection-criteria;
 		</references>
 
 		<section title="Summary of Document Changes">
