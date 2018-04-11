@@ -73,7 +73,7 @@
 		</author>
 
 		<author fullname="Arnold Nipper" initials="A." surname="Nipper">
-			<organization>DE-CIX Management GmbH</organization>
+			<organization abbrev="DE-CIX">DE-CIX Management GmbH</organization>
 			<address>
 				<postal>
 					<street>Lichtstrasse 43i</street>
@@ -86,7 +86,7 @@
 		</author>
 		
 		<author fullname="Christoph Dietzel" initials="C." surname="Dietzel">
-			<organization>DE-CIX Management GmbH</organization>
+			<organization abbrev="DE-CIX">DE-CIX Management GmbH</organization>
 			<address>
 				<postal>
 					<street>Lichtstrasse 43i</street>
@@ -220,7 +220,7 @@
 					    discussed elsewhere in the document, but we don't
 					    use the name "next hop" for this field to avoid
 					    confusion with the pre-existing next hop path
-					    attributes of <xref target="RFC4271"/> and
+					    attribute of <xref target="RFC4271"/> and
 					    attribute field of <xref target="RFC4760"/>.
 					</t>
 					<t>
