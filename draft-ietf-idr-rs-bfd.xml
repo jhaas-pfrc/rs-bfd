@@ -25,7 +25,7 @@
 <?rfc tocompact="yes"?>
 
 
-<rfc category="std" docName="draft-ietf-idr-rs-bfd-04">
+<rfc category="std" docName="draft-ietf-idr-rs-bfd-05">
 	<front>
 		<title abbrev="Making RSes aware of IXP Data Link Failures">Making
 			   Route Servers Aware of Data Link Failures at IXPs</title>
@@ -203,6 +203,27 @@
 						considered to be indirect peers.
 					</t>
 					<t>
+					    Indirect Peer's Address, IPA, next hop: We refer
+					    frequently to a next hop. It should generally be
+					    clear from context what is intended, almost always
+					    an address associated with an indirect peer (the
+					    exception, when an indirect peer sends a third
+					    party next hop, is discussed in <xref
+					    target="overview"/>). In <xref
+					    target="advertising"/> we discuss the <xref
+					    target="RFC4760">MP-BGP</xref> Next Hop field; this
+					    is distinguished by its capitalization and should
+					    also be clear from context. Later in that section
+					    we define the Indirect Peer's Address field of the
+					    NLRI, also called "IPA". It will be clear to the
+					    reader that this refers to the "next hops"
+					    discussed elsewhere in the document, but we don't
+					    use the name "next hop" for this field to avoid
+					    confusion with the pre-existing next hop path
+					    attributes of <xref target="RFC4271"/> and
+					    attribute field of <xref target="RFC4760"/>.
+					</t>
+					<t>
 						RS: Route Server. See <xref target="RFC7947"/>.
 					</t>
 				</list>
@@ -219,7 +240,7 @@
 				<list style="symbols">
 					<t>
 						ReachAsk: The reachability request database. A
-						database of nexthops (host addresses) for which data
+						database of next hops (host addresses) for which data
 						plane reachability is being queried. 
 					</t>
 					<t>
@@ -299,7 +320,7 @@ databases with In/Out Queues" align="center">
 		<section anchor="nh_validation" title="Next Hop Validation">
 			<t>
 				Below, we detail procedures where a route server tells its
-				client router about other client nexthops by sending it
+				client router about other client next hops by sending it
 				ReachAsk routes and the client router verifies connectivity to
 				those other client routers and communicates its findings back
 				to the RS using ReachTell routes. The RS uses the received
@@ -472,9 +493,9 @@ databases with In/Out Queues" align="center">
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-|T|Reserved |Sta|          next hop (4 or 16 octets)            |
+|T|Reserved |Sta|    Indirect Peer's Address (4 or 16 octets)   |
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-.             ...  next hop (4 or 16 octets) ...                .
+.      ...  Indirect Peer's Address (4 or 16 octets) ...        .
 .                                                               .
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 							]]></artwork></figure>
@@ -499,9 +520,9 @@ databases with In/Out Queues" align="center">
 					The value 3 MUST be accepted as an alias for 0 on
 					receipt.
 				</t>
-				<t>The next hop field is an IPv4 or IPv6 host
-				   route, depending on whether the AFI is IPv4
-				   or IPv6.</t>
+				<t>The Indirect Peer's Address ("IPA") field is an IPv4 
+				   or IPv6 host route, depending on whether the AFI is 
+				   IPv4 or IPv6.</t>
 			</list></t>
 
 			<t>
@@ -510,16 +531,16 @@ databases with In/Out Queues" align="center">
 				transitive.  
 			</t>
 			<t>
-				The next hop field is the key for the NH-Reach NLRI type;
+				The IPA field is the key for the NH-Reach NLRI type;
 				the information encoded in the top octet is non-key
 				information. It is possible in principle (although
 				unlikely) for two NLRI to be validly present in an UPDATE
-				message with identical next hop fields but different
-				types. However, two NLRI with the same next hop field and
+				message with identical IPA fields but different
+				types. However, two NLRI with the same IPA field and
 				different State fields MUST NOT be encoded in the same
 				UPDATE message. If such is encountered, the receiver MUST
 				behave as though the state "Unknown" was received for the
-				next hop in question.
+				IPA in question.
 			</t>
 		</section>
 
@@ -533,14 +554,14 @@ databases with In/Out Queues" align="center">
 				specification utilizes BFD.
 			</t>
 			<t>
-				If no existing BFD session exists to this nexthop, a BFD
+				If no existing BFD session exists to this next hop, a BFD
 				session is provisioned to that IP address and the LocReach
 				<xref target="locreach">reachability state</xref> is set to
 				Unknown. 
 			</t>
 			<t>
 				If the client cannot establish a BFD session with an entry
-				in its ReachAsk-In, the nexthop remains in 
+				in its ReachAsk-In, the next hop remains in 
 				LocReach with its Reachable state Unknown.
 			</t>
 			<t>
@@ -613,6 +634,12 @@ databases with In/Out Queues" align="center">
 				implementation might by default only allow BFD relationships
 				with peers that share a subnetwork with the route server. An
 				implementation MAY apply such restrictions by default.
+			</t>
+			<t>
+			    In a route-server environment, use of this feature SHOULD
+			    be restricted to consider only routes that are advertised
+			    from within the IXP network.  This might include checks on
+			    AS_PATH length.
 			</t>
 		</section>
 
@@ -688,6 +715,10 @@ databases with In/Out Queues" align="center">
 		<section title="Summary of Document Changes">
 		    <t>
 		    <list style="hanging" hangIndent="2">
+		    <t hangText="idr-04 to idr-05:">Added reference to "BGP Bestpath 
+		       Selection Criteria Enhancement" draft. Rename "next hop" field
+		       of NLRI to "Indirect Peer's Address". Add suggestion about
+		       AS_PATH length checks. </t>
 			<t hangText="idr-03 to idr-04:">Note other forms of connectivity checks.</t>
 		        <t hangText="idr-02 to idr-03:">Substantial rewrite. Introduce 
 		           NLRI format that embeds state.</t>
