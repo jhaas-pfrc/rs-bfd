@@ -6,8 +6,12 @@
 <!ENTITY RFC4760 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.4760.xml">
 <!ENTITY RFC5880 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5880.xml">
 <!ENTITY RFC5881 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.5881.xml">
+<!ENTITY RFC7880 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7880.xml">
 <!ENTITY RFC7947 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7947.xml">
 <!ENTITY I-D.ietf-idr-bgp-bestpath-selection-criteria SYSTEM "http://xml.resource.org/public/rfc/bibxml3/reference.I-D.ietf-idr-bgp-bestpath-selection-criteria.xml">
+<!ENTITY RFC7947 SYSTEM "http://xml2rfc.ietf.org/public/rfc/bibxml/reference.RFC.7947.xml">
+<!ENTITY BFD-UNSOL SYSTEM
+"https://xml2rfc.tools.ietf.org/public/rfc/bibxml3/reference.I-D.draft-chen-bfd-unsolicited-02.xml">
 ]>
 <?rfc comments="yes"?>
 <?rfc compact="yes"?>
@@ -21,7 +25,7 @@
 <?rfc tocompact="yes"?>
 
 
-<rfc category="std" docName="draft-ietf-idr-rs-bfd-03">
+<rfc category="std" docName="draft-ietf-idr-rs-bfd-04">
 	<front>
 		<title abbrev="Making RSes aware of IXP Data Link Failures">Making
 			   Route Servers Aware of Data Link Failures at IXPs</title>
@@ -81,7 +85,7 @@
 			</address>
 		</author>
 		
-		<author fullname="Thomas King" initials="T." surname="King">
+		<author fullname="Christoph Dietzel" initials="C." surname="Dietzel">
 			<organization>DE-CIX Management GmbH</organization>
 			<address>
 				<postal>
@@ -90,7 +94,7 @@
 					<code>50825</code>
 					<country>Germany</country>
 				</postal>
-				<email>thomas.king@de-cix.net</email>
+				<email>christoph.dietzel@de-cix.net</email>
 			</address>
 		</author>
 
@@ -612,6 +616,13 @@ databases with In/Out Queues" align="center">
 			</t>
 		</section>
 
+		<section title="Acknolwedgments">
+			<t>
+				The authors would like to thanks Thomas King for his contributions
+				toward this work.
+			</t>
+		</section>
+
 		<section title="IANA Considerations">
 			<t>
 				IANA is requested to allocate a value from the Subsequent
@@ -670,13 +681,16 @@ databases with In/Out Queues" align="center">
 		<references title="Informative References">
 		&RFC4272;
 		&I-D.ietf-idr-bgp-bestpath-selection-criteria;
+		&RFC7880;
+		&BFD-UNSOL;
 		</references>
 
 		<section title="Summary of Document Changes">
 		    <t>
 		    <list style="hanging" hangIndent="2">
-		    <t hangText="idr-02 to idr-03:">Substantial rewrite. Introduce 
-		       NLRI format that embeds state.</t>
+			<t hangText="idr-03 to idr-04:">Note other forms of connectivity checks.</t>
+		        <t hangText="idr-02 to idr-03:">Substantial rewrite. Introduce 
+		           NLRI format that embeds state.</t>
 			<t hangText="idr-01 to idr-02:">Move from BGP-LS to NH-Reach SAFI.
 			   Lots of editorial changes.</t>
 			<t hangText="idr-00 to idr-01:">Add BGP Capability.  Move from 
@@ -689,6 +703,31 @@ databases with In/Out Queues" align="center">
 		    </list>
 		    </t>
 		</section>
+
+		<section title="Other Forms of Connectity Checks">
+			<t>
+				RFC 5880/5881 BFD is a well-deployed feature.  For this reason, it
+				was chosen as the connectivity check utilized for nexthop
+				reachability by this document.  As other forms of BFD become more
+				widely deployed, they may also be utilized to provide the
+				connectivity check functionality.
+			</t>
+			<t>
+				Examples of other such BFD mechanisms include:
+				<list style="symbols">
+					<t><xref target="RFC7880">Seamless BFD</xref></t>
+					<t><xref target="I-D.chen-bfd-unsolicited">
+					    Unsolicited BFD for Sessionless Applications</xref></t>
+				</list>
+			</t>
+			<t>
+				Implementations MUST support RFC 5880/5881 BFD to be compliant with
+				this specification.  Implementations MAY support other forms of
+				connectivity check, including those mechanisms listed above, so long
+				as they provide the ability to fall-back to RFC 5880/5881 BFD.
+			</t>
+		</section>
+
 	</back>
 
 </rfc>
