@@ -25,7 +25,7 @@
 <?rfc tocompact="yes"?>
 
 
-<rfc category="std" docName="draft-ietf-idr-rs-bfd-05">
+<rfc category="std" docName="draft-ietf-idr-rs-bfd-06">
 	<front>
 		<title abbrev="Making RSes aware of IXP Data Link Failures">Making
 			   Route Servers Aware of Data Link Failures at IXPs</title>
@@ -488,8 +488,7 @@ databases with In/Out Queues" align="center">
 				ReachAsk and ReachTell entries are exchanged using the
 				NH-Reach NLRI encoding: 
 			</t>
-			<figure title="NH-Reach NLRI Format" 
-					align="center"><artwork><![CDATA[
+                        <figure title="NH-Reach NLRI Format" align="center"><artwork><![CDATA[
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
@@ -498,7 +497,7 @@ databases with In/Out Queues" align="center">
 .      ...  Indirect Peer's Address (4 or 16 octets) ...        .
 .                                                               .
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-							]]></artwork></figure>
+                                                        ]]></artwork></figure>
 
 			<t><list style="symbols">
 				<t>T: Type is a one-bit field that can take the 
@@ -715,10 +714,11 @@ databases with In/Out Queues" align="center">
 		<section title="Summary of Document Changes">
 		    <t>
 		    <list style="hanging" hangIndent="2">
-		    <t hangText="idr-04 to idr-05:">Added reference to "BGP Bestpath 
-		       Selection Criteria Enhancement" draft. Rename "next hop" field
-		       of NLRI to "Indirect Peer's Address". Add suggestion about
-		       AS_PATH length checks. </t>
+			<t hangText="idr-06:">Refresh -05.</t>
+		        <t hangText="idr-04 to idr-05:">Added reference to "BGP Bestpath 
+		           Selection Criteria Enhancement" draft. Rename "next hop" field
+		           of NLRI to "Indirect Peer's Address". Add suggestion about
+		           AS_PATH length checks. </t>
 			<t hangText="idr-03 to idr-04:">Note other forms of connectivity checks.</t>
 		        <t hangText="idr-02 to idr-03:">Substantial rewrite. Introduce 
 		           NLRI format that embeds state.</t>
