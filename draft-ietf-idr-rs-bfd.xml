@@ -25,7 +25,7 @@
 <?rfc tocompact="yes"?>
 
 
-<rfc category="std" docName="draft-ietf-idr-rs-bfd-08">
+<rfc category="std" docName="draft-ietf-idr-rs-bfd-09">
 	<front>
 		<title abbrev="Making RSes aware of IXP Data Link Failures">Making
 			   Route Servers Aware of Data Link Failures at IXPs</title>
